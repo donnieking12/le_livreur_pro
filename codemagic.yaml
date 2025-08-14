@@ -9,7 +9,7 @@ workflows:
       # groups: (commented out - no groups needed for first build)
       #   - google_play
       vars:
-        PACKAGE_NAME: "io.lelivreurpro.app"
+                 PACKAGE_NAME: "ci.lelivreurpro.le_livreur_pro"
         BUILD_APP_NAME: "Le Livreur Pro"
     scripts:
       # Code signing setup disabled for first build
@@ -22,17 +22,19 @@ workflows:
       #       -keypass $CM_KEY_PASSWORD
       - name: Get Flutter packages
         script: flutter pub get
-      - name: Flutter build apk
-        script: |
-          flutter build apk \
-            --release \
-            --dart-define=ENVIRONMENT=production \
-            --dart-define=SUPABASE_URL=$SUPABASE_URL \
-            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+       - name: Flutter build apk
+         script: |
+           flutter build apk \
+             --release \
+             --verbose \
+             --dart-define=ENVIRONMENT=production \
+             --dart-define=SUPABASE_URL=$SUPABASE_URL \
+             --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
       - name: Build Android App Bundle
         script: |
           flutter build appbundle \
             --release \
+            --verbose \
             --dart-define=ENVIRONMENT=production \
             --dart-define=SUPABASE_URL=$SUPABASE_URL \
             --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
@@ -56,7 +58,7 @@ workflows:
       # groups: (commented out - no groups needed for first build)
       #   - app_store_connect
       vars:
-        BUNDLE_ID: "io.lelivreurpro.app"
+                 BUNDLE_ID: "ci.lelivreurpro.le_livreur_pro"
         XCODE_PROJECT: "ios/Runner.xcworkspace"
         XCODE_SCHEME: "Runner"
     scripts:
