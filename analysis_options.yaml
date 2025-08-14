@@ -1,0 +1,56 @@
+# This file configures the analyzer, which statically analyzes Dart code to
+# check for errors, warnings, and lints.
+#
+# The following line activates a set of recommended lints for Flutter apps,
+# packages, and plugins designed to encourage good coding practices.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  # Enable all analyzer checks
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+  
+  # Exclude generated files
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/generated_*.dart"
+    - "**/build/**"
+    - "**/.dart_tool/**"
+  
+  # Enable additional checks
+  errors:
+    invalid_annotation_target: ignore
+
+linter:
+  # Production-ready linting rules
+  rules:
+    # Code style
+    prefer_single_quotes: true
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_const_declarations: true
+    prefer_final_fields: true
+    prefer_final_locals: true
+    
+    # Performance
+    avoid_print: true
+    avoid_unnecessary_containers: true
+    
+    # Best practices
+    always_use_package_imports: true
+    avoid_empty_else: true
+    avoid_relative_lib_imports: true
+    avoid_slow_async_io: true
+    avoid_type_to_string: true
+    
+    # Error handling
+    avoid_catches_without_on_clauses: true
+    avoid_catching_errors: true
+    
+    # Documentation
+    public_member_api_docs: false
+
+# Additional information about this file can be found at
+# https://dart.dev/guides/language/analysis-options

@@ -1,0 +1,99 @@
+name: le_livreur_pro
+description: Professional delivery service platform for Côte d'Ivoire
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI and Design
+  cupertino_icons: ^1.0.8
+
+  # Maps and Location Services
+  google_maps_flutter: ^2.5.0
+  geolocator: ^10.1.0
+
+  # Backend Integration
+  supabase_flutter: ^2.0.0
+  
+  # Local Notifications (Temporarily disabled due to Android 16 compatibility)
+  # flutter_local_notifications: ^14.1.5
+
+  # State Management
+  flutter_riverpod: ^2.4.0
+
+  # Data Models and Serialization
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+
+  # Localization (French/English for Côte d'Ivoire)
+  easy_localization: ^3.0.3
+  intl: ^0.20.2 # UPDATED to match your version
+
+  # HTTP Client and Networking
+  dio: ^5.3.2
+
+  # Utilities
+  uuid: ^4.1.0
+  shared_preferences: ^2.2.2
+
+  # Image and Media
+  image_picker: ^1.0.4
+  cached_network_image: ^3.3.0
+
+  # Permissions
+  permission_handler: ^11.0.1
+
+  # URL Launcher for external apps
+  url_launcher: ^6.2.1
+
+  # Loading and Progress Indicators
+  flutter_spinkit: ^5.2.0
+
+  # Animations
+  lottie: ^2.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  # Code Generation
+  build_runner: ^2.4.7
+  freezed: ^2.4.6
+  json_serializable: ^6.7.1
+
+  # Testing
+  mockito: ^5.4.2
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  # Assets for Le Livreur Pro
+  assets:
+    - assets/translations/
+    - assets/images/
+    - assets/images/delivery/
+    - assets/images/payment/
+    - assets/icons/
+    - assets/lottie/
+
+  # Custom fonts for branding (TEMPORARILY COMMENTED OUT)
+  # Uncomment and add font files to assets/fonts/ when ready
+  # fonts:
+  #   - family: Inter
+  #     fonts:
+  #       - asset: assets/fonts/Inter-Regular.ttf
+  #       - asset: assets/fonts/Inter-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/Inter-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/Inter-Bold.ttf
+  #         weight: 700
