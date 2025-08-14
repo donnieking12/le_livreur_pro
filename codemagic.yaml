@@ -39,11 +39,11 @@ workflows:
       - build/**/outputs/**/mapping.txt
       - flutter_drive.log
       - build/**/outputs/**/bundle/**/*.aab
-    publishing:
-      google_play:
-        track: internal
-        submit_to_internal_testing: true
-        submit_as_draft: false
+    # Publishing disabled for now - enable when you have Google Play credentials
+    # publishing:
+    #   google_play:
+    #     track: internal
+    #     submit_as_draft: false
 
   le-livreur-pro-ios:
     name: Le Livreur Pro - iOS
@@ -62,16 +62,16 @@ workflows:
         script: |
           keychain_name="temporary_keychain"
           keychain_password="temp"
-          
+
           security create-keychain -p "$keychain_password" "$keychain_name"
           security list-keychains -s "$keychain_name"
           security default-keychain -s "$keychain_name"
           security unlock-keychain -p "$keychain_password" "$keychain_name"
           security set-keychain-settings -t 3600 -l ~/Library/Keychains/"$keychain_name"
-          
+
           security import "$CM_CERTIFICATE" -k "$keychain_name" -P "$CM_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           security import "$CM_PROVISIONING_PROFILE" -k "$keychain_name" -T /usr/bin/codesign
-          
+
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain_name"
       - name: Get Flutter packages
         script: flutter pub get
@@ -90,12 +90,13 @@ workflows:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
       - flutter_drive.log
-    publishing:
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_ID
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true
+    # Publishing disabled for now - enable when you have App Store Connect credentials
+    # publishing:
+    #   app_store_connect:
+    #     api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+    #     key_id: $APP_STORE_CONNECT_KEY_ID
+    #     issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+    #     submit_to_testflight: true
 
   le-livreur-pro-web:
     name: Le Livreur Pro - Web
@@ -120,9 +121,10 @@ workflows:
           firebase deploy --only hosting --project $FIREBASE_PROJECT
     artifacts:
       - build/web/**/*
-    publishing:
-      firebase:
-        firebase_project_id: $FIREBASE_PROJECT
+    # Publishing disabled for now - enable when you have Firebase credentials
+    # publishing:
+    #   firebase:
+    #     firebase_project_id: $FIREBASE_PROJECT
 
   le-livreur-pro-test:
     name: Le Livreur Pro - Tests
@@ -143,10 +145,11 @@ workflows:
     artifacts:
       - coverage/**/*
       - test_driver/**/*
-    publishing:
-      email:
-        recipients:
-          - $TEST_RESULTS_EMAIL
+    # Publishing disabled for now - enable when you have email configured
+    # publishing:
+    #   email:
+    #     recipients:
+    #       - $TEST_RESULTS_EMAIL
 
   le-livreur-pro-analyze:
     name: Le Livreur Pro - Code Analysis
@@ -163,10 +166,11 @@ workflows:
           flutter pub run custom_lint
     artifacts:
       - analysis_results.txt
-    publishing:
-      email:
-        recipients:
-          - $CODE_QUALITY_EMAIL
+    # Publishing disabled for now - enable when you have email configured
+    # publishing:
+    #   email:
+    #     recipients:
+    #       - $CODE_QUALITY_EMAIL
 
 # Global environment variables
 environment:
@@ -174,19 +178,19 @@ environment:
     ENVIRONMENT: "production"
     FLUTTER_VERSION: "3.32.8"
     DART_VERSION: "3.8.1"
-  
+
   flutter: stable
-  
+
   android_signing:
     - keystore_reference
-  
+
   groups:
     - google_play
     - app_store_connect
     - firebase
     - test
     - code_quality
-  
+
   # Cache settings for faster builds
   cache:
     flutter_pub: true
@@ -201,20 +205,20 @@ triggering:
     - pull_request
     - tag
   branch_patterns:
-    - pattern: 'main'
+    - pattern: "main"
       include: true
       source: true
-    - pattern: 'develop'
+    - pattern: "develop"
       include: true
       source: true
-    - pattern: 'feature/*'
+    - pattern: "feature/*"
       include: true
       source: false
-    - pattern: 'hotfix/*'
+    - pattern: "hotfix/*"
       include: true
       source: false
   tag_patterns:
-    - pattern: 'v*'
+    - pattern: "v*"
       include: true
       source: true
 
