@@ -6,8 +6,8 @@ workflows:
       # android_signing disabled for first build - enable when you have keystore
       # android_signing:
       #   - keystore_reference
-      groups:
-        - google_play
+      # groups: (commented out - no groups needed for first build)
+      #   - google_play
       vars:
         PACKAGE_NAME: "io.lelivreurpro.app"
         BUILD_APP_NAME: "Le Livreur Pro"
@@ -53,8 +53,8 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
-      groups:
-        - app_store_connect
+      # groups: (commented out - no groups needed for first build)
+      #   - app_store_connect
       vars:
         BUNDLE_ID: "io.lelivreurpro.app"
         XCODE_PROJECT: "ios/Runner.xcworkspace"
@@ -104,8 +104,8 @@ workflows:
     name: Le Livreur Pro - Web
     environment:
       flutter: stable
-      groups:
-        - firebase
+      # groups: (commented out - no groups needed for first build)
+      #   - firebase
       vars:
         FIREBASE_PROJECT: "le-livreur-pro"
     scripts:
@@ -132,8 +132,8 @@ workflows:
     name: Le Livreur Pro - Tests
     environment:
       flutter: stable
-      groups:
-        - test
+      # groups: (commented out - no groups needed for first build)
+      #   - test
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
@@ -187,12 +187,12 @@ environment:
   # android_signing:
   #   - keystore_reference
 
-  groups:
-    - google_play
-    - app_store_connect
-    - firebase
-    - test
-    - code_quality
+  # groups: (commented out - no groups needed for first build)
+  #   - google_play
+  #   - app_store_connect
+  #   - firebase
+  #   - test
+  #   - code_quality
 
   # Cache settings for faster builds
   cache:
