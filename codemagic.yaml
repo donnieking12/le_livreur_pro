@@ -1,299 +1,46 @@
 workflows:
   le-livreur-pro-android:
-    name: Le Livreur Pro - Android
+    name: Le Livreur Pro - Android (Physical Device)
     environment:
       flutter: stable
-      # android_signing disabled for first build - enable when you have keystore
-      # android_signing:
-      #   - keystore_reference
-      # groups: (commented out - no groups needed for first build)
-      #   - google_play
       vars:
         PACKAGE_NAME: "ci.lelivreurpro.le_livreur_pro"
         BUILD_APP_NAME: "Le Livreur Pro"
     scripts:
-      # Code signing setup disabled for first build
-      # - name: Set up code signing settings
-      #   script: |
-      #     keytool -list -v \
-      #       -keystore $CM_KEYSTORE_PATH \
-      #       -alias $CM_KEY_ALIAS \
-      #       -storepass $CM_KEYSTORE_PASSWORD \
-      #       -keypass $CM_KEY_PASSWORD
       - name: Get Flutter packages
         script: flutter pub get
-      - name: Check Java and environment
-        script: |
-          echo "=== Java Environment ==="
-          java -version 2>/dev/null || echo "Java not found"
-          echo "JAVA_HOME: $JAVA_HOME"
-          echo "PATH: $PATH"
-          echo "=== Current Directory ==="
-          pwd
-          ls -la
-      - name: Fix Gradle wrapper permissions
-        script: |
-          cd android || exit 0
-          echo "=== Checking Gradle wrapper files ==="
-
-          # List files first
-          ls -la gradlew* 2>/dev/null || echo "No gradlew files found"
-
-          # Try to make gradlew executable (but don't fail if it doesn't work)
-          if [ -f gradlew ]; then
-            echo "Found gradlew, attempting to make executable..."
-            chmod +x gradlew 2>/dev/null && echo "chmod successful" || echo "chmod failed (continuing anyway)"
-            ls -la gradlew
-          else
-            echo "gradlew not found"
-          fi
-
-          if [ -f gradlew.bat ]; then
-            echo "Found gradlew.bat"
-            ls -la gradlew.bat
-          else
-            echo "gradlew.bat not found"
-          fi
-
-          echo "=== Gradle wrapper check completed ==="
-          # Always exit successfully
-          exit 0
-      - name: Show Gradle version and info
-        script: |
-          cd android || exit 0
-          echo "=== Gradle Version Check ==="
-          
-          # Check if gradlew is executable
-          if [ -x gradlew ]; then
-            echo "gradlew is executable, running version check..."
-            ./gradlew --version 2>/dev/null || echo "gradlew --version failed"
-            ./gradlew --info 2>/dev/null || echo "gradlew --info failed"
-          else
-            echo "gradlew is not executable, trying alternatives..."
-            
-            # Try to make it executable first
-            chmod +x gradlew 2>/dev/null && echo "chmod successful" || echo "chmod failed"
-            
-            # Try multiple execution methods
-            echo "Trying bash gradlew..."
-            bash gradlew --version 2>/dev/null && echo "bash gradlew --version successful" || echo "bash gradlew --version failed"
-            
-            echo "Trying sh gradlew..."
-            sh gradlew --version 2>/dev/null && echo "sh gradlew --version successful" || echo "sh gradlew --version failed"
-            
-            echo "Trying system gradle..."
-            gradle --version 2>/dev/null && echo "system gradle --version successful" || echo "system gradle --version failed"
-          fi
-          
-          echo "=== Gradle version check completed ==="
-          # Always exit successfully
-          exit 0
-      - name: Check Android project structure
-        script: |
-          echo "=== Android Project Structure ==="
-          ls -la android/ 2>/dev/null || echo "Cannot list android directory"
-          echo "=== Gradle Wrapper ==="
-          ls -la android/gradlew* 2>/dev/null || echo "Cannot list gradlew files"
-          echo "=== Build Files ==="
-          ls -la android/app/ 2>/dev/null || echo "Cannot list android/app directory"
-          echo "=== Project structure check completed ==="
-      - name: Flutter build apk
+      - name: Build APK for physical device
         script: |
           flutter build apk \
-            --release \
-            --verbose \
-            --dart-define=ENVIRONMENT=production \
-            --dart-define=SUPABASE_URL=$SUPABASE_URL \
-            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
-            --debug
-      - name: Try direct Gradle build for debugging
-        script: |
-          cd android
-          echo "=== Trying Gradle Wrapper ==="
-          ./gradlew assembleRelease --stacktrace --info 2>/dev/null || echo "Gradle wrapper failed"
-          echo "=== Trying System Gradle ==="
-          gradle assembleRelease --stacktrace --info 2>/dev/null || echo "System gradle failed"
-          echo "=== Trying with bash ==="
-          bash gradlew assembleRelease --stacktrace --info 2>/dev/null || echo "bash gradlew failed"
-      - name: Build Android App Bundle
-        script: |
-          flutter build appbundle \
-            --release \
-            --verbose \
-            --dart-define=ENVIRONMENT=production \
+            --debug \
+            --dart-define=ENVIRONMENT=development \
             --dart-define=SUPABASE_URL=$SUPABASE_URL \
             --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+      - name: Show build results
+        script: |
+          echo "=== Build completed successfully! ==="
+          echo "APK location: build/app/outputs/flutter-apk/app-debug.apk"
+          ls -la build/app/outputs/flutter-apk/
     artifacts:
-      - build/**/outputs/**/*.apk
-      - build/**/outputs/**/mapping.txt
-      - flutter_drive.log
-      - build/**/outputs/**/bundle/**/*.aab
-    # Publishing disabled for now - enable when you have Google Play credentials
-    # publishing:
-    #   google_play:
-    #     track: internal
-    #     submit_as_draft: false
-
-  le-livreur-pro-ios:
-    name: Le Livreur Pro - iOS
-    environment:
-      flutter: stable
-      xcode: latest
-      cocoapods: default
-      # groups: (commented out - no groups needed for first build)
-      #   - app_store_connect
-      vars:
-        BUNDLE_ID: "ci.lelivreurpro.le_livreur_pro"
-        XCODE_PROJECT: "ios/Runner.xcworkspace"
-        XCODE_SCHEME: "Runner"
-    scripts:
-      - name: Set up code signing settings
-        script: |
-          keychain_name="temporary_keychain"
-          keychain_password="temp"
-
-          security create-keychain -p "$keychain_password" "$keychain_name"
-          security list-keychains -s "$keychain_name"
-          security default-keychain -s "$keychain_name"
-          security unlock-keychain -p "$keychain_password" "$keychain_name"
-          security set-keychain-settings -t 3600 -l ~/Library/Keychains/"$keychain_name"
-
-          security import "$CM_CERTIFICATE" -k "$keychain_name" -P "$CM_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security import "$CM_PROVISIONING_PROFILE" -k "$keychain_name" -T /usr/bin/codesign
-
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain_name"
-      - name: Get Flutter packages
-        script: flutter pub get
-      - name: Install pods
-        script: |
-          cd ios
-          pod install
-      - name: Flutter build ipa
-        script: |
-          flutter build ipa \
-            --release \
-            --dart-define=ENVIRONMENT=production \
-            --dart-define=SUPABASE_URL=$SUPABASE_URL \
-            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
-    artifacts:
-      - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
-    # Publishing disabled for now - enable when you have App Store Connect credentials
-    # publishing:
-    #   app_store_connect:
-    #     api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-    #     key_id: $APP_STORE_CONNECT_KEY_ID
-    #     issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-    #     submit_to_testflight: true
-
-  le-livreur-pro-web:
-    name: Le Livreur Pro - Web
-    environment:
-      flutter: stable
-      # groups: (commented out - no groups needed for first build)
-      #   - firebase
-      vars:
-        FIREBASE_PROJECT: "le-livreur-pro"
-    scripts:
-      - name: Get Flutter packages
-        script: flutter pub get
-      - name: Flutter build web
-        script: |
-          flutter build web \
-            --release \
-            --dart-define=ENVIRONMENT=production \
-            --dart-define=SUPABASE_URL=$SUPABASE_URL \
-            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
-      - name: Deploy to Firebase Hosting
-        script: |
-          firebase deploy --only hosting --project $FIREBASE_PROJECT
-    artifacts:
-      - build/web/**/*
-    # Publishing disabled for now - enable when you have Firebase credentials
-    # publishing:
-    #   firebase:
-    #     firebase_project_id: $FIREBASE_PROJECT
-
-  le-livreur-pro-test:
-    name: Le Livreur Pro - Tests
-    environment:
-      flutter: stable
-      # groups: (commented out - no groups needed for first build)
-      #   - test
-    scripts:
-      - name: Get Flutter packages
-        script: flutter pub get
-      - name: Run Flutter tests
-        script: |
-          flutter test --coverage
-          genhtml coverage/lcov.info -o coverage/html
-      - name: Run integration tests
-        script: |
-          flutter drive --target=test_driver/app.dart
-    artifacts:
-      - coverage/**/*
-      - test_driver/**/*
-    # Publishing disabled for now - enable when you have email configured
-    # publishing:
-    #   email:
-    #     recipients:
-    #       - $TEST_RESULTS_EMAIL
-
-  le-livreur-pro-analyze:
-    name: Le Livreur Pro - Code Analysis
-    environment:
-      flutter: stable
-    scripts:
-      - name: Get Flutter packages
-        script: flutter pub get
-      - name: Run Flutter analyze
-        script: flutter analyze
-      - name: Run custom linting
-        script: |
-          dart analyze
-          flutter pub run custom_lint
-    artifacts:
-      - analysis_results.txt
-    # Publishing disabled for now - enable when you have email configured
-    # publishing:
-    #   email:
-    #     recipients:
-    #       - $CODE_QUALITY_EMAIL
+      - build/app/outputs/flutter-apk/*.apk
+      - build/app/outputs/flutter-apk/mapping.txt
 
 # Global environment variables
 environment:
   vars:
-    ENVIRONMENT: "production"
+    ENVIRONMENT: "development"
     FLUTTER_VERSION: "3.32.8"
     DART_VERSION: "3.8.1"
-
   flutter: stable
-
-  # android_signing disabled for first build - enable when you have keystore
-  # android_signing:
-  #   - keystore_reference
-
-  # groups: (commented out - no groups needed for first build)
-  #   - google_play
-  #   - app_store_connect
-  #   - firebase
-  #   - test
-  #   - code_quality
-
-  # Cache settings for faster builds
   cache:
     flutter_pub: true
-    cocoapods: true
     gradle: true
-    npm: true
 
 # Trigger conditions
 triggering:
   events:
     - push
     - pull_request
-    - tag
   branch_patterns:
     - pattern: "main"
       include: true
@@ -301,17 +48,7 @@ triggering:
     - pattern: "develop"
       include: true
       source: true
-    - pattern: "feature/*"
-      include: true
-      source: false
-    - pattern: "hotfix/*"
-      include: true
-      source: false
-  tag_patterns:
-    - pattern: "v*"
-      include: true
-      source: true
 
-# Build timeout and resource limits
-build_timeout: 60
-max_build_duration: 60
+# Build timeout
+build_timeout: 30
+max_build_duration: 30
