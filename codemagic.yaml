@@ -22,6 +22,24 @@ workflows:
       #       -keypass $CM_KEY_PASSWORD
       - name: Get Flutter packages
         script: flutter pub get
+      - name: Fix Gradle wrapper permissions
+        script: |
+          cd android
+          chmod +x gradlew
+          chmod +x gradlew.bat
+      - name: Show Gradle version and info
+        script: |
+          cd android
+          ./gradlew --version
+          ./gradlew --info
+      - name: Check Android project structure
+        script: |
+          echo "=== Android Project Structure ==="
+          ls -la android/
+          echo "=== Gradle Wrapper ==="
+          ls -la android/gradlew*
+          echo "=== Build Files ==="
+          ls -la android/app/
       - name: Flutter build apk
         script: |
           flutter build apk \
@@ -29,7 +47,12 @@ workflows:
             --verbose \
             --dart-define=ENVIRONMENT=production \
             --dart-define=SUPABASE_URL=$SUPABASE_URL \
-            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
+            --debug
+      - name: Try direct Gradle build for debugging
+        script: |
+          cd android
+          ./gradlew assembleRelease --stacktrace --info
       - name: Build Android App Bundle
         script: |
           flutter build appbundle \
