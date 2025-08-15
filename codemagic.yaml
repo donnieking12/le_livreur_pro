@@ -33,40 +33,70 @@ workflows:
           ls -la
       - name: Fix Gradle wrapper permissions
         script: |
-          cd android
-          # Try multiple permission methods for compatibility
+          cd android || exit 0
+          echo "=== Checking Gradle wrapper files ==="
+
+          # List files first
+          ls -la gradlew* 2>/dev/null || echo "No gradlew files found"
+
+          # Try to make gradlew executable (but don't fail if it doesn't work)
           if [ -f gradlew ]; then
-            chmod +x gradlew 2>/dev/null || true
+            echo "Found gradlew, attempting to make executable..."
+            chmod +x gradlew 2>/dev/null && echo "chmod successful" || echo "chmod failed (continuing anyway)"
             ls -la gradlew
+          else
+            echo "gradlew not found"
           fi
+
           if [ -f gradlew.bat ]; then
+            echo "Found gradlew.bat"
             ls -la gradlew.bat
+          else
+            echo "gradlew.bat not found"
           fi
-          echo "Gradle wrapper files checked"
+
+          echo "=== Gradle wrapper check completed ==="
+          # Always exit successfully
+          exit 0
       - name: Show Gradle version and info
         script: |
-          cd android
+          cd android || exit 0
+          echo "=== Gradle Version Check ==="
+          
           # Check if gradlew is executable
           if [ -x gradlew ]; then
             echo "gradlew is executable, running version check..."
-            ./gradlew --version
-            ./gradlew --info
+            ./gradlew --version 2>/dev/null || echo "gradlew --version failed"
+            ./gradlew --info 2>/dev/null || echo "gradlew --info failed"
           else
-            echo "gradlew is not executable, trying to make it executable..."
-            chmod +x gradlew 2>/dev/null || echo "chmod failed, trying alternative..."
-            # Try using bash directly
-            bash gradlew --version 2>/dev/null || echo "bash gradlew failed"
-            # Try using sh directly
-            sh gradlew --version 2>/dev/null || echo "sh gradlew failed"
+            echo "gradlew is not executable, trying alternatives..."
+            
+            # Try to make it executable first
+            chmod +x gradlew 2>/dev/null && echo "chmod successful" || echo "chmod failed"
+            
+            # Try multiple execution methods
+            echo "Trying bash gradlew..."
+            bash gradlew --version 2>/dev/null && echo "bash gradlew --version successful" || echo "bash gradlew --version failed"
+            
+            echo "Trying sh gradlew..."
+            sh gradlew --version 2>/dev/null && echo "sh gradlew --version successful" || echo "sh gradlew --version failed"
+            
+            echo "Trying system gradle..."
+            gradle --version 2>/dev/null && echo "system gradle --version successful" || echo "system gradle --version failed"
           fi
+          
+          echo "=== Gradle version check completed ==="
+          # Always exit successfully
+          exit 0
       - name: Check Android project structure
         script: |
           echo "=== Android Project Structure ==="
-          ls -la android/
+          ls -la android/ 2>/dev/null || echo "Cannot list android directory"
           echo "=== Gradle Wrapper ==="
-          ls -la android/gradlew*
+          ls -la android/gradlew* 2>/dev/null || echo "Cannot list gradlew files"
           echo "=== Build Files ==="
-          ls -la android/app/
+          ls -la android/app/ 2>/dev/null || echo "Cannot list android/app directory"
+          echo "=== Project structure check completed ==="
       - name: Flutter build apk
         script: |
           flutter build apk \
