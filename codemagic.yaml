@@ -22,16 +22,43 @@ workflows:
       #       -keypass $CM_KEY_PASSWORD
       - name: Get Flutter packages
         script: flutter pub get
+      - name: Check Java and environment
+        script: |
+          echo "=== Java Environment ==="
+          java -version 2>/dev/null || echo "Java not found"
+          echo "JAVA_HOME: $JAVA_HOME"
+          echo "PATH: $PATH"
+          echo "=== Current Directory ==="
+          pwd
+          ls -la
       - name: Fix Gradle wrapper permissions
         script: |
           cd android
-          chmod +x gradlew
-          chmod +x gradlew.bat
+          # Try multiple permission methods for compatibility
+          if [ -f gradlew ]; then
+            chmod +x gradlew 2>/dev/null || true
+            ls -la gradlew
+          fi
+          if [ -f gradlew.bat ]; then
+            ls -la gradlew.bat
+          fi
+          echo "Gradle wrapper files checked"
       - name: Show Gradle version and info
         script: |
           cd android
-          ./gradlew --version
-          ./gradlew --info
+          # Check if gradlew is executable
+          if [ -x gradlew ]; then
+            echo "gradlew is executable, running version check..."
+            ./gradlew --version
+            ./gradlew --info
+          else
+            echo "gradlew is not executable, trying to make it executable..."
+            chmod +x gradlew 2>/dev/null || echo "chmod failed, trying alternative..."
+            # Try using bash directly
+            bash gradlew --version 2>/dev/null || echo "bash gradlew failed"
+            # Try using sh directly
+            sh gradlew --version 2>/dev/null || echo "sh gradlew failed"
+          fi
       - name: Check Android project structure
         script: |
           echo "=== Android Project Structure ==="
@@ -52,7 +79,12 @@ workflows:
       - name: Try direct Gradle build for debugging
         script: |
           cd android
-          ./gradlew assembleRelease --stacktrace --info
+          echo "=== Trying Gradle Wrapper ==="
+          ./gradlew assembleRelease --stacktrace --info 2>/dev/null || echo "Gradle wrapper failed"
+          echo "=== Trying System Gradle ==="
+          gradle assembleRelease --stacktrace --info 2>/dev/null || echo "System gradle failed"
+          echo "=== Trying with bash ==="
+          bash gradlew assembleRelease --stacktrace --info 2>/dev/null || echo "bash gradlew failed"
       - name: Build Android App Bundle
         script: |
           flutter build appbundle \
