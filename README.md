@@ -242,6 +242,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] IoT device support
 - [ ] Advanced reporting
 
+## 📝 Recent Changes & Updates
+
+### Latest Commits (Current Session)
+- **Gradle Build Optimization**: Enhanced build process with improved debugging and error handling
+- **Physical Device Testing**: Simplified debugging for faster APK builds on physical devices
+- **Build Scripts**: Added local build scripts (`build_local.bat` and `build_local.ps1`) for Windows development
+- **Gradle Permissions**: Fixed and improved Gradle permissions handling with better error recovery
+- **CI/CD Improvements**: Enhanced Codemagic configuration for more reliable builds
+
+### Build System Enhancements
+- **Local Build Scripts**: Windows batch and PowerShell scripts for local development
+- **Gradle Debugging**: Comprehensive debugging steps with better error handling
+- **Permission Management**: Improved Java environment checks and execution methods
+- **Fast Debug APK**: Optimized for quick testing on physical devices
+
 ---
 
 **Built with ❤️ for Côte d'Ivoire's delivery ecosystem**
