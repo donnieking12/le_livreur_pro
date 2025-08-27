@@ -2,12 +2,15 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/models/user.dart';
-import '../../../../shared/theme/app_theme.dart';
-import '../../../auth/presentation/screens/login_screen.dart';
-import '../../../orders/presentation/screens/orders_screen.dart';
-import '../../../profile/presentation/screens/profile_screen.dart';
-import '../../../tracking/presentation/screens/tracking_screen.dart';
+import 'package:le_livreur_pro/core/models/user.dart';
+import 'package:le_livreur_pro/shared/theme/app_theme.dart';
+import 'package:le_livreur_pro/features/auth/presentation/screens/login_screen.dart';
+import 'package:le_livreur_pro/features/orders/presentation/screens/create_order_screen.dart';
+import 'package:le_livreur_pro/features/orders/presentation/screens/orders_screen.dart';
+import 'package:le_livreur_pro/features/profile/presentation/screens/profile_screen.dart';
+import 'package:le_livreur_pro/features/tracking/presentation/screens/tracking_screen.dart';
+import 'package:le_livreur_pro/features/home/presentation/widgets/marketplace_tab.dart';
+import 'package:le_livreur_pro/features/home/presentation/widgets/package_delivery_tab.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -69,7 +72,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildDashboard() {
     switch (_currentUser.userType) {
       case UserType.customer:
-        return _buildCustomerDashboard();
+        return _buildCustomerMarketplace();
       case UserType.courier:
         return _buildCourierDashboard();
       case UserType.partner:
@@ -77,6 +80,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case UserType.admin:
         return _buildAdminDashboard();
     }
+  }
+
+  Widget _buildCustomerMarketplace() {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          Container(
+            color: AppTheme.primaryGreen,
+            child: TabBar(
+              indicatorColor: Colors.white,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
+              tabs: [
+                Tab(
+                  icon: const Icon(Icons.storefront),
+                  text: 'Explorer les boutiques'.tr(),
+                ),
+                Tab(
+                  icon: const Icon(Icons.local_shipping),
+                  text: 'Envoyer un colis'.tr(),
+                ),
+              ],
+            ),
+          ),
+          const Expanded(
+            child: TabBarView(
+              children: [
+                MarketplaceTab(),
+                PackageDeliveryTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCustomerDashboard() {
@@ -519,9 +558,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // Navigation methods
   void _createNewOrder() {
-    // TODO: Navigate to new order screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Créer une nouvelle commande'.tr())),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CreateOrderScreen(),
+      ),
     );
   }
 

@@ -1,262 +1,333 @@
 # Le Livreur Pro 🚚
 
-**Professional Delivery Service Platform for Côte d'Ivoire**
+## Plateforme de Livraison Complète pour la Côte d'Ivoire
 
-A comprehensive Flutter application that connects customers, couriers, partners, and administrators in a seamless delivery ecosystem.
+Le Livreur Pro est une plateforme de livraison moderne et complète, spécialement conçue pour le marché ivoirien. Elle connecte les clients, les livreurs, les commerçants et les administrateurs dans un écosystème unifié de livraison en temps réel.
 
-## ✨ Features
+### 🌟 Fonctionnalités Principales
 
-### 🏠 **Multi-Profile Dashboard System**
-- **Customer Dashboard**: Order management, delivery tracking, zone information
-- **Courier Dashboard**: Available deliveries, earnings, performance metrics
-- **Partner Dashboard**: Order management, analytics, business insights
-- **Admin Dashboard**: System overview, user management, system settings
+#### Pour les Clients
 
-### 📱 **Core Functionality**
-- **Authentication**: Secure login system with phone number verification
-- **Order Management**: Create, track, and manage delivery orders
-- **Real-time Tracking**: Live delivery tracking with status updates
-- **Profile Management**: Comprehensive user profile and settings
-- **Multi-language Support**: French (default) and English localization
+- **Commande Facile**: Interface intuitive pour commander des livraisons
+- **Suivi en Temps Réel**: Localisation GPS en direct du livreur
+- **Paiements Multiples**: Orange Money, MTN Money, Moov Money, Wave, Cartes bancaires, Espèces
+- **Support Multilingue**: Français et Anglais
+- **Chat en Direct**: Communication avec le livreur
+- **Historique Complet**: Suivi de toutes les commandes
 
-### 🎨 **Modern UI/UX**
-- **Material Design 3**: Latest Flutter design principles
-- **Responsive Design**: Optimized for all screen sizes
-- **Dark/Light Themes**: Automatic theme switching
-- **Brand Colors**: Professional green and orange color scheme
+#### Pour les Livreurs
 
-## 🏗️ Architecture
+- **Tableau de Bord Intelligent**: Gestion des commandes disponibles et actives
+- **Navigation GPS**: Itinéraires optimisés vers les destinations
+- **Gestion des Revenus**: Suivi des gains avec système de commission (90% livreur, 10% plateforme)
+- **Statuts en Temps Réel**: Mise à jour instantanée des statuts de livraison
+- **Système de Notation**: Évaluations clients pour améliorer la qualité
+
+#### Pour les Commerçants
+
+- **Gestion du Menu**: Interface complète pour gérer les produits
+- **Analytiques Avancées**: Métriques de performance et revenus
+- **Gestion des Commandes**: Suivi et traitement des commandes
+- **Configuration Restaurant**: Paramètres personnalisables
+
+#### Pour les Administrateurs
+
+- **Tableau de Bord Complet**: Vue d'ensemble de toute la plateforme
+- **Gestion des Utilisateurs**: Administration des clients, livreurs et partenaires
+- **Suivi des Commandes**: Monitoring en temps réel de toutes les livraisons
+- **Analytiques Détaillées**: Métriques de performance de la plateforme
+- **Configuration Système**: Paramètres globaux et tarification
+
+### 🛠️ Architecture Technique
+
+#### Technologies Utilisées
+
+- **Frontend**: Flutter Web (Support multi-plateforme)
+- **Backend**: Supabase (PostgreSQL + Temps Réel)
+- **Authentification**: OTP par SMS pour le marché ivoirien
+- **Paiements**: Intégration complète avec les opérateurs ivoiriens
+- **Cartes**: Google Maps Platform avec Directions API
+- **Notifications**: Firebase Cloud Messaging
+- **État Global**: Riverpod pour la gestion d'état
+- **Localisation**: Easy Localization (FR/EN)
+
+#### Fonctionnalités Avancées
+
+- **Calcul de Prix Intelligent**: Système de zones avec tarification dynamique
+- **Temps Réel**: WebSockets pour les mises à jour instantanées
+- **Chat Intégré**: Communication client-livreur en temps réel
+- **Géolocalisation**: Suivi précis avec optimisation des trajets
+- **Système de Commission**: 10% plateforme, 90% livreur
+- **Gestion des Priorités**: Livraison normale, urgente, express
+
+### 📱 Captures d'Écran
+
+_(Screenshots will be added here showing different interfaces)_
+
+### 🚀 Installation et Configuration
+
+#### Prérequis
+
+- Flutter SDK 3.19.0+
+- Dart 3.0+
+- Compte Supabase
+- Clés API Google Maps
+- Configuration Firebase
+
+#### Installation Rapide
+
+```bash
+# Cloner le repository
+git clone https://github.com/your-org/le-livreur-pro.git
+cd le-livreur-pro
+
+# Installer les dépendances
+flutter pub get
+
+# Configurer les variables d'environnement
+cp .env.example .env
+
+# Lancer en mode développement
+flutter run -d web-server --web-port 8080
+```
+
+#### Configuration Complète
+
+Voir [DEPLOYMENT.md](DEPLOYMENT.md) pour les instructions détaillées de déploiement.
+
+### 🏗️ Structure du Projet
 
 ```
 lib/
-├── core/                    # Core functionality
-│   ├── constants/          # App constants
-│   ├── models/            # Data models (User, DeliveryOrder)
-│   └── services/          # Business logic services
-├── features/              # Feature-based modules
-│   ├── auth/             # Authentication
-│   ├── home/             # Main dashboard
-│   ├── orders/           # Order management
-│   ├── tracking/         # Delivery tracking
-│   ├── courier/          # Courier-specific features
-│   └── profile/          # User profile management
-├── shared/               # Shared components
-│   ├── theme/           # App theming
-│   ├── utils/           # Utility functions
-│   └── widgets/         # Reusable widgets
-└── main.dart            # App entry point
+├── core/                     # Logique métier centrale
+│   ├── models/              # Modèles de données
+│   ├── services/            # Services externes
+│   ├── providers/           # Providers Riverpod
+│   └── utils/               # Utilitaires
+├── features/                # Fonctionnalités par domaine
+│   ├── auth/               # Authentification
+│   ├── orders/             # Gestion des commandes
+│   ├── user/               # Interface client
+│   ├── courier/            # Interface livreur
+│   ├── partner/            # Interface commerçant
+│   └── admin/              # Interface administrateur
+├── shared/                  # Composants partagés
+│   ├── widgets/            # Widgets réutilisables
+│   ├── theme/              # Thème et styles
+│   └── utils/              # Utilitaires partagés
+└── main.dart               # Point d'entrée
 ```
 
-## 🚀 Getting Started
+### 💳 Intégration Paiements
 
-### Prerequisites
-- Flutter SDK 3.0.0 or higher
-- Dart SDK 3.0.0 or higher
-- Android Studio / VS Code
-- Android SDK / Xcode (for mobile development)
+#### Méthodes Supportées
 
-### Installation
+- **Orange Money** - Opérateur principal en Côte d'Ivoire
+- **MTN Money** - Deuxième opérateur majeur
+- **Moov Money** - Service de paiement mobile Moov
+- **Wave** - Portefeuille mobile populaire
+- **Cartes Bancaires** - Visa/Mastercard via Stripe
+- **Espèces** - Paiement à la livraison
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/le_livreur_pro.git
-   cd le_livreur_pro
-   ```
+#### Fonctionnalités Paiement
 
-2. **Install dependencies**
-   ```bash
-   flutter pub get
-   ```
+- Calcul automatique des frais
+- Traitement en temps réel
+- Système de remboursement
+- Historique des transactions
+- Notifications de paiement
 
-3. **Generate code files**
-   ```bash
-   dart run build_runner build --delete-conflicting-outputs
-   ```
+### 🗺️ Système de Tarification
 
-4. **Run the app**
-   ```bash
-   flutter run
-   ```
+#### Zones de Livraison
 
-## 🔧 Configuration
+- **Abidjan**: Zone de base 5km - Prix de base 500 XOF
+- **Bouaké**: Zone de base 3km - Prix de base 500 XOF
+- **Yamoussoukro**: Zone de base 4km - Prix de base 500 XOF
+- **San-Pédro**: Zone de base 4.5km - Prix de base 500 XOF
+- **Korhogo**: Zone de base 2.5km - Prix de base 500 XOF
 
-### Environment Setup
-- **Supabase**: Configure your Supabase project credentials
-- **Google Maps**: Add your Google Maps API key
-- **Localization**: Translation files are in `assets/translations/`
+#### Calcul des Prix
 
-### Build Configuration
-- **Android**: NDK version 27.0.12077973
-- **iOS**: Minimum iOS version 12.0
-- **Web**: Responsive web support included
+- **Prix de base**: 500 XOF (couvre la zone de base)
+- **Distance supplémentaire**: 100 XOF/km au-delà de la zone
+- **Livraison urgente**: +200 XOF
+- **Livraison express**: +400 XOF
+- **Colis fragile**: +200 XOF
+- **Commission plateforme**: 10% du prix total
 
-## 🚀 CI/CD with Codemagic
+### 🔄 Fonctionnalités Temps Réel
 
-This project uses **Codemagic** for automated CI/CD pipelines, ensuring consistent builds and deployments across all platforms.
+#### Suivi des Commandes
 
-### **Automated Workflows**
-- **Android Build**: APK/AAB generation with Google Play deployment
-- **iOS Build**: IPA generation with TestFlight deployment  
-- **Web Build**: Web assets with Firebase Hosting deployment
-- **Testing**: Automated unit and integration tests
-- **Code Quality**: Static analysis and linting
+- Localisation en direct du livreur
+- Mises à jour automatiques du statut
+- Notifications push instantanées
+- Estimation du temps d'arrivée
 
-### **Quick Setup**
-1. **Connect Repository**: Link your GitHub/GitLab/Bitbucket repo
-2. **Configure Variables**: Set up environment variables and signing keys
-3. **Trigger Builds**: Push to main/develop branches to trigger builds
-4. **Monitor**: Track build progress and results in real-time
+#### Communication
 
-📖 **Full Setup Guide**: See [CODEMAGIC_SETUP.md](CODEMAGIC_SETUP.md) for detailed instructions.
+- Chat client-livreur intégré
+- Notifications de messages
+- Historique des conversations
+- Support multimédia
 
-## 📱 Screenshots
+#### Gestion des Statuts
 
-### Customer Dashboard
-- Welcome card with user information
-- Quick action buttons for new orders and tracking
-- Recent orders with status indicators
-- Delivery zone information and pricing
+```
+Statuts de Commande:
+├── pending (En attente)
+├── assigned (Attribuée)
+├── courierEnRoute (Livreur en route)
+├── pickedUp (Récupérée)
+├── inTransit (En transit)
+├── delivered (Livrée)
+├── cancelled (Annulée)
+└── refunded (Remboursée)
+```
 
-### Courier Dashboard
-- Online/offline status toggle
-- Daily statistics (deliveries, earnings, ratings)
-- Available delivery opportunities
-- Recent delivery history
+### 📊 Analytiques et Métriques
 
-### Order Management
-- Order statistics and filtering
-- Detailed order information
-- Status tracking and updates
-- Support and communication tools
+#### Métriques Clients
 
-### Delivery Tracking
-- Real-time delivery status
-- Courier information and contact
-- Estimated arrival times
-- Delivery history
+- Nombre de commandes
+- Satisfaction client
+- Fréquence d'utilisation
+- Montant moyen des commandes
 
-## 🌍 Localization
+#### Métriques Livreurs
 
-The app supports multiple languages:
-- **French (fr)**: Default language for Côte d'Ivoire
-- **English (en)**: International support
+- Nombre de livraisons
+- Temps de livraison moyen
+- Évaluations clients
+- Revenus générés
 
-Translation files are located in `assets/translations/`
+#### Métriques Plateforme
 
-## 🎨 Theming
+- Volume de commandes
+- Croissance utilisateurs
+- Performance des paiements
+- Efficacité des livraisons
 
-### Color Scheme
-- **Primary Green**: #2E7D32 (Brand color)
-- **Accent Orange**: #FF9800 (Call-to-action)
-- **Success Green**: #4CAF50 (Positive actions)
-- **Warning Orange**: #FF9800 (Warnings)
-- **Error Red**: #F44336 (Errors)
+### 🧪 Tests et Qualité
 
-### Theme Modes
-- **Light Theme**: Clean, professional appearance
-- **Dark Theme**: Modern, eye-friendly interface
-- **Auto Switch**: Follows system preferences
+#### Couverture de Tests
 
-## 🔒 Security Features
+- **Tests Unitaires**: 90%+ des services principaux
+- **Tests de Widgets**: Composants critiques
+- **Tests d'Intégration**: Workflows utilisateur complets
+- **Tests de Performance**: Charge et stress
 
-- **Phone Number Authentication**: Secure login system
-- **Data Encryption**: All sensitive data is encrypted
-- **Permission Management**: Granular app permissions
-- **Secure API Communication**: HTTPS with proper headers
-
-## 📊 Performance Optimizations
-
-- **Gradle Configuration**: Optimized build settings
-- **Memory Management**: Efficient resource usage
-- **Image Caching**: Optimized image loading
-- **Lazy Loading**: On-demand content loading
-
-## 🧪 Testing
+#### Commandes de Test
 
 ```bash
-# Unit tests
-flutter test
+# Tests unitaires
+flutter test test/unit/
 
-# Integration tests
-flutter test integration_test/
+# Tests de widgets
+flutter test test/widget/
 
-# Build tests
-flutter build apk --debug
-flutter build web --release
+# Tests d'intégration
+flutter test test/integration/
+
+# Couverture de code
+flutter test --coverage
 ```
 
-## 📦 Build & Deploy
+### 🔒 Sécurité
 
-### Android APK
-```bash
-flutter build apk --release
-```
+#### Authentification
 
-### iOS App Store
-```bash
-flutter build ios --release
-```
+- OTP par SMS sécurisé
+- Gestion des sessions JWT
+- Authentification multi-facteurs pour admin
+- Chiffrement des données sensibles
 
-### Web Deployment
-```bash
-flutter build web --release
-```
+#### Protection des Données
 
-## 🤝 Contributing
+- Chiffrement HTTPS obligatoire
+- Validation des entrées utilisateur
+- Protection contre XSS et CSRF
+- Audit trails des actions sensibles
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+#### Conformité
 
-## 📄 License
+- Politique de confidentialité
+- Conditions d'utilisation
+- Conformité RGPD
+- Standards de sécurité des paiements
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### 📈 Roadmap
 
-## 🆘 Support
+#### Version 1.1 (Q3 2024)
 
-- **Documentation**: Check this README and code comments
-- **Issues**: Report bugs via GitHub Issues
-- **Discussions**: Join community discussions
+- [ ] Livraisons programmées
+- [ ] Système de fidélité
+- [ ] Intégration avec plus de restaurants
+- [ ] Optimisation des trajets par IA
+
+#### Version 1.2 (Q4 2024)
+
+- [ ] Application mobile native
+- [ ] Livraisons de groupe
+- [ ] Programme de parrainage
+- [ ] Support client 24/7
+
+#### Version 2.0 (Q1 2025)
+
+- [ ] Livraisons inter-villes
+- [ ] Marketplace élargi
+- [ ] Système de notation avancé
+- [ ] Intelligence artificielle prédictive
+
+### 🤝 Contribution
+
+#### Comment Contribuer
+
+1. Fork le repository
+2. Créer une branche pour votre fonctionnalité
+3. Commiter vos changements
+4. Pousser vers la branche
+5. Créer une Pull Request
+
+#### Standards de Code
+
+- Suivre les conventions Dart/Flutter
+- Documenter les fonctions publiques
+- Ajouter des tests pour les nouvelles fonctionnalités
+- Respecter l'architecture existante
+
+### 📞 Support
+
+#### Contact
+
 - **Email**: support@lelivreurpro.ci
+- **Téléphone**: +225 XX XX XX XX
+- **Site Web**: https://lelivreurpro.ci
+- **Documentation**: https://docs.lelivreurpro.ci
 
-## 🗺️ Roadmap
+#### Support Technique
 
-### Phase 1 (Current) ✅
-- [x] Multi-profile dashboard system
-- [x] Basic authentication
-- [x] Order management
-- [x] Delivery tracking
-- [x] Multi-language support
+- GitHub Issues pour les bugs
+- Discord pour les discussions
+- Email pour le support urgent
+- Documentation complète disponible
 
-### Phase 2 (Next)
-- [ ] Real-time notifications
-- [ ] Payment integration
-- [ ] Advanced analytics
-- [ ] Partner portal
+### 📄 Licence
 
-### Phase 3 (Future)
-- [ ] AI-powered route optimization
-- [ ] Blockchain integration
-- [ ] IoT device support
-- [ ] Advanced reporting
+Ce projet est sous licence MIT. Voir [LICENSE](LICENSE) pour plus de détails.
 
-## 📝 Recent Changes & Updates
+### 🙏 Remerciements
 
-### Latest Commits (Current Session)
-- **Gradle Build Optimization**: Enhanced build process with improved debugging and error handling
-- **Physical Device Testing**: Simplified debugging for faster APK builds on physical devices
-- **Build Scripts**: Added local build scripts (`build_local.bat` and `build_local.ps1`) for Windows development
-- **Gradle Permissions**: Fixed and improved Gradle permissions handling with better error recovery
-- **CI/CD Improvements**: Enhanced Codemagic configuration for more reliable builds
+Merci à tous les contributeurs qui ont rendu ce projet possible :
 
-### Build System Enhancements
-- **Local Build Scripts**: Windows batch and PowerShell scripts for local development
-- **Gradle Debugging**: Comprehensive debugging steps with better error handling
-- **Permission Management**: Improved Java environment checks and execution methods
-- **Fast Debug APK**: Optimized for quick testing on physical devices
+- Équipe de développement
+- Testeurs et utilisateurs bêta
+- Partenaires locaux en Côte d'Ivoire
+- Communauté Flutter et open source
 
 ---
 
-**Built with ❤️ for Côte d'Ivoire's delivery ecosystem**
+**Le Livreur Pro** - Révolutionner la livraison en Côte d'Ivoire 🇨🇮
+
+_Développé avec ❤️ pour le marché ivoirien_

@@ -1,7 +1,12 @@
 import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:le_livreur_pro/core/models/payment_models.dart';
 
 class PaymentService {
+  static final _supabase = Supabase.instance.client;
+
   // Payment providers for Côte d'Ivoire
   static const List<String> _supportedProviders = [
     'orange_money',
@@ -132,8 +137,9 @@ class PaymentService {
     required String orderId,
     required double amount,
     required String currency,
-    required Map<String, dynamic> paymentDetails,
     required String userId,
+    Map<String, dynamic>? customerDetails,
+    Map<String, dynamic>? paymentDetails,
   }) async {
     try {
       // Generate payment reference
@@ -152,28 +158,33 @@ class PaymentService {
 
       // Process payment based on method
       PaymentResult result;
+      final details = paymentDetails ?? {};
+      final customerPhoneNumber = customerDetails?['phone'] ?? '';
 
       switch (paymentMethodId) {
         case 'orange_money':
+        case 'orangeMoney':
           result = await _processOrangeMoneyPayment(
             amount: amount,
-            phoneNumber: paymentDetails['phone_number'],
+            phoneNumber: details['phone_number'] ?? customerPhoneNumber,
             paymentRef: paymentRef,
           );
           break;
 
-        case 'mtn_momo':
+        case 'mtn_money':
+        case 'mtnMoney':
           result = await _processMTNMoMoPayment(
             amount: amount,
-            phoneNumber: paymentDetails['phone_number'],
+            phoneNumber: details['phone_number'] ?? customerPhoneNumber,
             paymentRef: paymentRef,
           );
           break;
 
         case 'moov_money':
+        case 'moovMoney':
           result = await _processMoovMoneyPayment(
             amount: amount,
-            phoneNumber: paymentDetails['phone_number'],
+            phoneNumber: details['phone_number'] ?? customerPhoneNumber,
             paymentRef: paymentRef,
           );
           break;
@@ -181,7 +192,7 @@ class PaymentService {
         case 'wave':
           result = await _processWavePayment(
             amount: amount,
-            phoneNumber: paymentDetails['phone_number'],
+            phoneNumber: details['phone_number'] ?? customerPhoneNumber,
             paymentRef: paymentRef,
           );
           break;
@@ -190,12 +201,13 @@ class PaymentService {
         case 'mastercard':
           result = await _processCardPayment(
             amount: amount,
-            cardDetails: paymentDetails,
+            cardDetails: details,
             paymentRef: paymentRef,
           );
           break;
 
         case 'cash_on_delivery':
+        case 'cashOnDelivery':
           result = await _processCashOnDelivery(
             amount: amount,
             paymentRef: paymentRef,
@@ -523,8 +535,29 @@ class PaymentService {
     required String paymentMethod,
     required String status,
   }) async {
-    // TODO: Save to Supabase database
-    print('Payment record created: $paymentRef');
+    try {
+      await _supabase.from('payment_transactions').insert({
+        'payment_ref': paymentRef,
+        'order_id': orderId,
+        'user_id': userId,
+        'provider': paymentMethod,
+        'type': 'payment',
+        'status': status,
+        'amount': amount,
+        'currency': currency,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+
+      if (kDebugMode) {
+        print('Payment record created: $paymentRef');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to create payment record: $e');
+      }
+      // Don't throw here to avoid breaking payment flow for logging issues
+    }
   }
 
   /// Update payment record
@@ -534,8 +567,37 @@ class PaymentService {
     String? transactionId,
     String? errorMessage,
   }) async {
-    // TODO: Update in Supabase database
-    print('Payment record updated: $paymentRef - $status');
+    try {
+      final updateData = {
+        'status': status,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      if (transactionId != null) {
+        updateData['external_transaction_id'] = transactionId;
+      }
+
+      if (errorMessage != null) {
+        updateData['failure_reason'] = errorMessage;
+      }
+
+      if (status == _statusCompleted) {
+        updateData['completed_at'] = DateTime.now().toIso8601String();
+      }
+
+      await _supabase
+          .from('payment_transactions')
+          .update(updateData)
+          .eq('payment_ref', paymentRef);
+
+      if (kDebugMode) {
+        print('Payment record updated: $paymentRef - $status');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to update payment record: $e');
+      }
+    }
   }
 
   // ==================== REFUNDS ====================
@@ -591,16 +653,116 @@ class PaymentService {
   }
 
   /// Get payment status
-  static String getPaymentStatus(String paymentRef) {
-    // TODO: Get from database
-    return _statusCompleted;
+  static Future<String> getPaymentStatus(String paymentRef) async {
+    try {
+      final response = await _supabase
+          .from('payment_transactions')
+          .select('status')
+          .eq('payment_ref', paymentRef)
+          .maybeSingle();
+
+      return response?['status'] as String? ?? _statusFailed;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to get payment status: $e');
+      }
+      return _statusFailed;
+    }
   }
 
   /// Get payment history for user
-  static Future<List<Map<String, dynamic>>> getPaymentHistory(
-      String userId) async {
-    // TODO: Get from database
-    return [];
+  static Future<List<PaymentTransaction>> getPaymentHistory(
+    String userId, {
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      final response = await _supabase
+          .from('payment_transactions')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .range(offset, offset + limit - 1);
+
+      return (response as List)
+          .map((json) => PaymentTransaction.fromJson(json))
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to get payment history: $e');
+      }
+      return [];
+    }
+  }
+
+  /// Get payment transactions for order
+  static Future<List<PaymentTransaction>> getOrderPayments(
+      String orderId) async {
+    try {
+      final response = await _supabase
+          .from('payment_transactions')
+          .select()
+          .eq('order_id', orderId)
+          .order('created_at', ascending: false);
+
+      return (response as List)
+          .map((json) => PaymentTransaction.fromJson(json))
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to get order payments: $e');
+      }
+      return [];
+    }
+  }
+
+  /// Get payment summary for user
+  static Future<PaymentSummary?> getPaymentSummary(String userId) async {
+    try {
+      // This would typically be a more complex query or stored procedure
+      final transactions = await getPaymentHistory(userId, limit: 1000);
+
+      if (transactions.isEmpty) return null;
+
+      final totalPaid = transactions
+          .where((t) => t.isSuccess && t.type == PaymentTransactionType.payment)
+          .fold(0.0, (sum, t) => sum + t.amount);
+
+      final totalRefunded = transactions
+          .where((t) => t.isSuccess && t.type == PaymentTransactionType.refund)
+          .fold(0.0, (sum, t) => sum + t.amount);
+
+      final successfulTransactions =
+          transactions.where((t) => t.isSuccess).length;
+
+      final failedTransactions = transactions.where((t) => t.hasFailed).length;
+
+      final paymentsByProvider = <PaymentProvider, double>{};
+      for (final transaction in transactions) {
+        if (transaction.isSuccess &&
+            transaction.type == PaymentTransactionType.payment) {
+          paymentsByProvider[transaction.provider] =
+              (paymentsByProvider[transaction.provider] ?? 0.0) +
+                  transaction.amount;
+        }
+      }
+
+      return PaymentSummary(
+        userId: userId,
+        totalPaid: totalPaid,
+        totalRefunded: totalRefunded,
+        totalTransactions: transactions.length,
+        successfulTransactions: successfulTransactions,
+        failedTransactions: failedTransactions,
+        paymentsByProvider: paymentsByProvider,
+        lastPaymentDate: transactions.first.createdAt,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to get payment summary: $e');
+      }
+      return null;
+    }
   }
 
   /// Get payment method details

@@ -1,16 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
-import '../models/delivery_order.dart';
-import '../models/user.dart';
+import 'package:le_livreur_pro/core/config/app_config.dart';
+import 'package:le_livreur_pro/core/models/address.dart';
+import 'package:le_livreur_pro/core/models/cart.dart';
+import 'package:le_livreur_pro/core/models/delivery_order.dart';
+import 'package:le_livreur_pro/core/models/menu_item.dart';
+import 'package:le_livreur_pro/core/models/restaurant.dart';
+import 'package:le_livreur_pro/core/models/user.dart';
 
 class SupabaseService {
   static late SupabaseClient _client;
   static late RealtimeChannel _realtimeChannel;
-
-  // Supabase configuration
-  static const String _supabaseUrl = 'YOUR_SUPABASE_URL';
-  static const String _supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
 
   // Table names
   static const String _usersTable = 'users';
@@ -21,9 +22,16 @@ class SupabaseService {
 
   /// Initialize Supabase client
   static Future<void> initialize() async {
+    // Validate configuration before initializing
+    if (!AppConfig.isValidSupabaseConfig) {
+      throw Exception(
+          'Invalid Supabase configuration. Please check your .env file and update '
+          'SUPABASE_URL and SUPABASE_ANON_KEY with your actual values.');
+    }
+
     await Supabase.initialize(
-      url: _supabaseUrl,
-      anonKey: _supabaseAnonKey,
+      url: AppConfig.supabaseUrl,
+      anonKey: AppConfig.supabaseAnonKey,
       realtimeClientOptions: const RealtimeClientOptions(
         logLevel: RealtimeLogLevel.info,
       ),
@@ -193,7 +201,9 @@ class SupabaseService {
 
   /// Update user profile
   static Future<bool> updateUserProfile(
-      String userId, Map<String, dynamic> updates) async {
+    String userId,
+    Map<String, dynamic> updates,
+  ) async {
     try {
       final response =
           await _client.from(_usersTable).update(updates).eq('id', userId);
@@ -325,7 +335,8 @@ class SupabaseService {
 
   /// Get courier earnings
   static Future<Map<String, dynamic>> getCourierEarnings(
-      String courierId) async {
+    String courierId,
+  ) async {
     try {
       final response = await _client
           .from(_ordersTable)
@@ -334,7 +345,7 @@ class SupabaseService {
           .eq('status', 'delivered');
 
       double totalEarnings = 0;
-      int totalDeliveries = response.length;
+      final int totalDeliveries = response.length;
 
       for (final order in response) {
         totalEarnings += (order['amount'] as num).toDouble();
@@ -425,7 +436,8 @@ class SupabaseService {
 
   /// Get user notifications
   static Future<List<Map<String, dynamic>>> getUserNotifications(
-      String userId) async {
+    String userId,
+  ) async {
     try {
       final response = await _client
           .from(_notificationsTable)
@@ -483,10 +495,9 @@ class SupabaseService {
           .select()
           .eq('user_id', userId)
           .gte(
-              'timestamp',
-              DateTime.now()
-                  .subtract(const Duration(days: 30))
-                  .toIso8601String());
+            'timestamp',
+            DateTime.now().subtract(const Duration(days: 30)).toIso8601String(),
+          );
 
       // Process analytics data
       final actions = <String, int>{};

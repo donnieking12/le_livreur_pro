@@ -1,0 +1,239 @@
+# Kubernetes Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: le-livreur-pro
+  labels:
+    name: le-livreur-pro
+    environment: production
+
+---
+# ConfigMap for application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: le-livreur-config
+  namespace: le-livreur-pro
+data:
+  APP_NAME: "le-livreur-pro"
+  NODE_ENV: "production"
+  ENABLE_CHAT: "true"
+  ENABLE_REAL_TIME_TRACKING: "true"
+  ENABLE_PUSH_NOTIFICATIONS: "true"
+
+---
+# Secret for sensitive configuration
+apiVersion: v1
+kind: Secret
+metadata:
+  name: le-livreur-secrets
+  namespace: le-livreur-pro
+type: Opaque
+data:
+  # Base64 encoded secrets (encode your actual secrets)
+  SUPABASE_SERVICE_ROLE_KEY: eW91ci1zdXBhYmFzZS1zZXJ2aWNlLXJvbGUta2V5
+  JWT_SECRET: eW91ci1qd3Qtc2VjcmV0LWtleS1oZXJl
+  STRIPE_SECRET_KEY: c2tfdGVzdF95b3VyLXN0cmlwZS1zZWNyZXQ=
+
+---
+# Deployment for the main application
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: le-livreur-app
+  namespace: le-livreur-pro
+  labels:
+    app: le-livreur-app
+    version: v1.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: le-livreur-app
+  template:
+    metadata:
+      labels:
+        app: le-livreur-app
+        version: v1.0.0
+    spec:
+      containers:
+        - name: le-livreur-app
+          image: lelivreurpro/app:production-latest
+          ports:
+            - containerPort: 80
+              name: http
+          envFrom:
+            - configMapRef:
+                name: le-livreur-config
+            - secretRef:
+                name: le-livreur-secrets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+---
+# Service for the application
+apiVersion: v1
+kind: Service
+metadata:
+  name: le-livreur-service
+  namespace: le-livreur-pro
+  labels:
+    app: le-livreur-app
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: le-livreur-app
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: le-livreur-hpa
+  namespace: le-livreur-pro
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: le-livreur-app
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+# Ingress for external access
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: le-livreur-ingress
+  namespace: le-livreur-pro
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+spec:
+  tls:
+    - hosts:
+        - lelivreurpro.ci
+        - www.lelivreurpro.ci
+      secretName: le-livreur-tls
+  rules:
+    - host: lelivreurpro.ci
+      http:
+        paths:
+          - path: /(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: le-livreur-service
+                port:
+                  number: 80
+    - host: www.lelivreurpro.ci
+      http:
+        paths:
+          - path: /(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: le-livreur-service
+                port:
+                  number: 80
+
+---
+# Network Policy for security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: le-livreur-network-policy
+  namespace: le-livreur-pro
+spec:
+  podSelector:
+    matchLabels:
+      app: le-livreur-app
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+        - protocol: UDP
+          port: 53
+
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: le-livreur-pdb
+  namespace: le-livreur-pro
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: le-livreur-app

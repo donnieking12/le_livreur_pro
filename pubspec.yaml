@@ -20,7 +20,7 @@ dependencies:
 
   # Backend Integration
   supabase_flutter: ^2.0.0
-  
+
   # Local Notifications (Temporarily disabled due to Android 16 compatibility)
   # flutter_local_notifications: ^14.1.5
 
@@ -57,6 +57,9 @@ dependencies:
 
   # Animations
   lottie: ^2.7.0
+
+  # Charts and Analytics
+  fl_chart: ^0.66.0
 
 dev_dependencies:
   flutter_test:

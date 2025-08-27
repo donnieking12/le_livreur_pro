@@ -1,657 +1,366 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter/foundation.dart';
+import 'package:le_livreur_pro/core/models/analytics_data.dart';
 
 class AnalyticsService {
-  static late SupabaseClient _supabaseClient;
+  static final _supabase = Supabase.instance.client;
 
-  // Event names
-  static const String _eventAppOpen = 'app_open';
-  static const String _eventScreenView = 'screen_view';
-  static const String _eventUserAction = 'user_action';
-  static const String _eventOrderCreated = 'order_created';
-  static const String _eventOrderCompleted = 'order_completed';
-  static const String _eventPaymentInitiated = 'payment_initiated';
-  static const String _eventPaymentCompleted = 'payment_completed';
-  static const String _eventCourierAssigned = 'courier_assigned';
-  static const String _eventDeliveryStarted = 'delivery_started';
-  static const String _eventDeliveryCompleted = 'delivery_completed';
-  static const String _eventUserRegistration = 'user_registration';
-  static const String _eventUserLogin = 'user_login';
-  static const String _eventUserLogout = 'user_logout';
-  static const String _eventError = 'app_error';
-  static const String _eventPerformance = 'performance_metric';
-
-  /// Initialize analytics service
-  static Future<void> initialize() async {
+  /// Get analytics data for a partner
+  static Future<PartnerAnalytics> getPartnerAnalytics(
+    String partnerId,
+    String period,
+  ) async {
     try {
-      // Initialize Supabase client
-      _supabaseClient = Supabase.instance.client;
+      // Calculate date range based on period
+      final endDate = DateTime.now();
+      DateTime startDate;
 
-      if (kDebugMode) {
-        print('Analytics service initialized');
+      switch (period) {
+        case '7d':
+          startDate = endDate.subtract(const Duration(days: 7));
+          break;
+        case '30d':
+          startDate = endDate.subtract(const Duration(days: 30));
+          break;
+        case '90d':
+          startDate = endDate.subtract(const Duration(days: 90));
+          break;
+        case '1y':
+          startDate = endDate.subtract(const Duration(days: 365));
+          break;
+        default:
+          startDate = endDate.subtract(const Duration(days: 7));
       }
+
+      // For demo purposes, return mock data
+      // In production, this would query the database for real analytics
+      return _getMockAnalytics(period);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error initializing analytics: $e');
+      throw Exception('Failed to load partner analytics: $e');
+    }
+  }
+
+  /// Get revenue analytics for a partner
+  static Future<List<RevenueDataPoint>> getRevenueAnalytics(
+    String partnerId,
+    String period,
+  ) async {
+    try {
+      // TODO: Implement real revenue analytics query
+      return _getMockRevenueData(period);
+    } catch (e) {
+      throw Exception('Failed to load revenue analytics: $e');
+    }
+  }
+
+  /// Get order analytics for a partner
+  static Future<List<OrdersDataPoint>> getOrderAnalytics(
+    String partnerId,
+    String period,
+  ) async {
+    try {
+      // TODO: Implement real order analytics query
+      return _getMockOrdersData(period);
+    } catch (e) {
+      throw Exception('Failed to load order analytics: $e');
+    }
+  }
+
+  /// Get top products for a partner
+  static Future<List<TopProduct>> getTopProducts(
+    String partnerId,
+    String period, {
+    int limit = 10,
+  }) async {
+    try {
+      // TODO: Implement real top products query
+      return _getMockTopProducts();
+    } catch (e) {
+      throw Exception('Failed to load top products: $e');
+    }
+  }
+
+  /// Get customer insights for a partner
+  static Future<Map<String, dynamic>> getCustomerInsights(
+    String partnerId,
+    String period,
+  ) async {
+    try {
+      // TODO: Implement real customer insights query
+      return {
+        'newCustomers': 25,
+        'returningCustomers': 45,
+        'repeatOrderRate': 65.5,
+        'satisfactionRate': 88.2,
+      };
+    } catch (e) {
+      throw Exception('Failed to load customer insights: $e');
+    }
+  }
+
+  /// Get performance metrics for a partner
+  static Future<Map<String, dynamic>> getPerformanceMetrics(
+    String partnerId,
+    String period,
+  ) async {
+    try {
+      // TODO: Implement real performance metrics query
+      return {
+        'avgPreparationTime': 25,
+        'acceptanceRate': 92.5,
+        'averageRating': 4.7,
+        'avgDeliveryTime': 35,
+      };
+    } catch (e) {
+      throw Exception('Failed to load performance metrics: $e');
+    }
+  }
+
+  // ==================== MOCK DATA METHODS ====================
+  // These would be replaced with real database queries in production
+
+  static PartnerAnalytics _getMockAnalytics(String period) {
+    return PartnerAnalytics(
+      totalRevenue: 125000,
+      totalOrders: 89,
+      uniqueCustomers: 67,
+      averageOrderValue: 1404,
+      revenueChange: 12.5,
+      ordersChange: 8.3,
+      customersChange: 15.7,
+      aovChange: 4.2,
+      revenueData: _getMockRevenueData(period),
+      ordersData: _getMockOrdersData(period),
+      topProducts: _getMockTopProducts(),
+      newCustomers: 25,
+      returningCustomers: 45,
+      repeatOrderRate: 65.5,
+      satisfactionRate: 88.2,
+      avgPreparationTime: 25,
+      acceptanceRate: 92.5,
+      averageRating: 4.7,
+      avgDeliveryTime: 35,
+    );
+  }
+
+  static List<RevenueDataPoint> _getMockRevenueData(String period) {
+    final now = DateTime.now();
+    final List<RevenueDataPoint> data = [];
+
+    int days;
+    switch (period) {
+      case '7d':
+        days = 7;
+        break;
+      case '30d':
+        days = 30;
+        break;
+      case '90d':
+        days = 90;
+        break;
+      case '1y':
+        days = 365;
+        break;
+      default:
+        days = 7;
+    }
+
+    for (int i = days - 1; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      final dayOfWeek = date.weekday;
+
+      // Generate mock revenue with weekend patterns
+      double baseRevenue = 8000;
+      if (dayOfWeek == 6 || dayOfWeek == 7) {
+        baseRevenue *= 1.3; // Weekend boost
       }
+
+      // Add some randomness
+      final revenue = baseRevenue * (0.7 + (i % 5) * 0.1);
+
+      data.add(RevenueDataPoint(
+        date: _formatDate(date, period),
+        amount: revenue,
+      ));
+    }
+
+    return data;
+  }
+
+  static List<OrdersDataPoint> _getMockOrdersData(String period) {
+    final now = DateTime.now();
+    final List<OrdersDataPoint> data = [];
+
+    int days;
+    switch (period) {
+      case '7d':
+        days = 7;
+        break;
+      case '30d':
+        days = 30;
+        break;
+      case '90d':
+        days = 90;
+        break;
+      case '1y':
+        days = 365;
+        break;
+      default:
+        days = 7;
+    }
+
+    for (int i = days - 1; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      final dayOfWeek = date.weekday;
+
+      // Generate mock orders with weekend patterns
+      int baseOrders = 8;
+      if (dayOfWeek == 6 || dayOfWeek == 7) {
+        baseOrders = (baseOrders * 1.4).round(); // Weekend boost
+      }
+
+      // Add some randomness
+      final orders = baseOrders + (i % 4);
+
+      data.add(OrdersDataPoint(
+        date: _formatDate(date, period),
+        count: orders,
+      ));
+    }
+
+    return data;
+  }
+
+  static List<TopProduct> _getMockTopProducts() {
+    return [
+      TopProduct(
+        id: '1',
+        name: 'Attiéké Poisson',
+        quantity: 45,
+        revenue: 67500,
+        imageUrl: null,
+      ),
+      TopProduct(
+        id: '2',
+        name: 'Riz au Gras',
+        quantity: 38,
+        revenue: 57000,
+        imageUrl: null,
+      ),
+      TopProduct(
+        id: '3',
+        name: 'Poulet Braisé',
+        quantity: 32,
+        revenue: 48000,
+        imageUrl: null,
+      ),
+      TopProduct(
+        id: '4',
+        name: 'Alloco Sauce',
+        quantity: 28,
+        revenue: 35000,
+        imageUrl: null,
+      ),
+      TopProduct(
+        id: '5',
+        name: 'Jus de Gingembre',
+        quantity: 52,
+        revenue: 26000,
+        imageUrl: null,
+      ),
+    ];
+  }
+
+  static String _formatDate(DateTime date, String period) {
+    switch (period) {
+      case '7d':
+        const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+        return weekdays[date.weekday - 1];
+      case '30d':
+        return '${date.day}/${date.month}';
+      case '90d':
+        return '${date.day}/${date.month}';
+      case '1y':
+        const months = [
+          'Jan',
+          'Fév',
+          'Mar',
+          'Avr',
+          'Mai',
+          'Jun',
+          'Jul',
+          'Aoû',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Déc'
+        ];
+        return months[date.month - 1];
+      default:
+        return '${date.day}/${date.month}';
     }
   }
 
-  // ==================== SCREEN TRACKING ====================
-
-  /// Track screen view
-  static Future<void> trackScreenView({
-    required String screenName,
-    String? screenClass,
-    Map<String, dynamic>? parameters,
-  }) async {
-    try {
-      // Supabase Analytics
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventScreenView,
-        'event_type': 'screen_view',
-        'screen_name': screenName,
-        'screen_class': screenClass,
-        'parameters': parameters,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking screen view: $e');
-    }
-  }
-
-  /// Save screen view to database
-  static Future<void> _saveScreenView(
-    String screenName,
-    String? screenClass,
-    Map<String, dynamic>? parameters,
+  /// Export analytics data as CSV
+  static Future<String> exportAnalyticsAsCSV(
+    String partnerId,
+    String period,
   ) async {
     try {
-      // TODO: Save to Supabase analytics table
-      print('Screen view saved: $screenName');
+      final analytics = await getPartnerAnalytics(partnerId, period);
+
+      // Create CSV content
+      final csvLines = <String>[];
+      csvLines.add('Date,Revenus,Commandes');
+
+      for (int i = 0; i < analytics.revenueData.length; i++) {
+        final revenue = analytics.revenueData[i];
+        final orders =
+            i < analytics.ordersData.length ? analytics.ordersData[i].count : 0;
+        csvLines.add('${revenue.date},${revenue.amount},$orders');
+      }
+
+      return csvLines.join('\n');
     } catch (e) {
-      print('Error saving screen view: $e');
+      throw Exception('Failed to export analytics: $e');
     }
   }
 
-  // ==================== USER ACTIONS ====================
-
-  /// Track user action
-  static Future<void> trackUserAction({
-    required String action,
-    required String screen,
-    String? element,
-    Map<String, dynamic>? parameters,
-  }) async {
+  /// Get real-time dashboard data
+  static Future<Map<String, dynamic>> getRealTimeDashboard(
+      String partnerId) async {
     try {
-      // Supabase Analytics
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventUserAction,
-        'event_type': 'user_action',
-        'action': action,
-        'screen': screen,
-        'element': element,
-        'parameters': parameters,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking user action: $e');
-    }
-  }
-
-  /// Save user action to database
-  static Future<void> _saveUserAction(
-    String action,
-    String screen,
-    String? element,
-    Map<String, dynamic>? parameters,
-  ) async {
-    try {
-      // TODO: Save to Supabase user_actions table
-      print('User action saved: $action on $screen');
-    } catch (e) {
-      print('Error saving user action: $e');
-    }
-  }
-
-  // ==================== ORDER ANALYTICS ====================
-
-  /// Track order creation
-  static Future<void> trackOrderCreated({
-    required String orderId,
-    required String userId,
-    required double amount,
-    required String pickupLocation,
-    required String deliveryLocation,
-    String? paymentMethod,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventOrderCreated,
-        'event_type': 'order_event',
-        'order_id': orderId,
-        'user_id': userId,
-        'amount': amount,
-        'pickup_location': pickupLocation,
-        'delivery_location': deliveryLocation,
-        'payment_method': paymentMethod,
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking order creation: $e');
-    }
-  }
-
-  /// Track order completion
-  static Future<void> trackOrderCompleted({
-    required String orderId,
-    required String userId,
-    required double amount,
-    required Duration deliveryTime,
-    String? courierId,
-    String? courierName,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventOrderCompleted,
-        'event_type': 'order_event',
-        'order_id': orderId,
-        'user_id': userId,
-        'amount': amount,
-        'delivery_time_minutes': deliveryTime.inMinutes,
-        'courier_id': courierId,
-        'courier_name': courierName,
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking order completion: $e');
-    }
-  }
-
-  /// Save order event to database
-  static Future<void> _saveOrderEvent(
-    String eventType,
-    String orderId,
-    String userId,
-    double amount,
-    Map<String, dynamic>? additionalData,
-  ) async {
-    try {
-      // TODO: Save to Supabase order_events table
-      print('Order event saved: $eventType for order $orderId');
-    } catch (e) {
-      print('Error saving order event: $e');
-    }
-  }
-
-  // ==================== PAYMENT ANALYTICS ====================
-
-  /// Track payment initiation
-  static Future<void> trackPaymentInitiated({
-    required String orderId,
-    required String userId,
-    required double amount,
-    required String paymentMethod,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventPaymentInitiated,
-        'event_type': 'payment_event',
-        'order_id': orderId,
-        'user_id': userId,
-        'amount': amount,
-        'payment_method': paymentMethod,
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking payment initiation: $e');
-    }
-  }
-
-  /// Track payment completion
-  static Future<void> trackPaymentCompleted({
-    required String orderId,
-    required String userId,
-    required double amount,
-    required String paymentMethod,
-    required bool isSuccess,
-    String? transactionId,
-    String? errorMessage,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventPaymentCompleted,
-        'event_type': 'payment_event',
-        'order_id': orderId,
-        'user_id': userId,
-        'amount': amount,
-        'payment_method': paymentMethod,
-        'is_success': isSuccess,
-        'transaction_id': transactionId,
-        'error_message': errorMessage,
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking payment completion: $e');
-    }
-  }
-
-  /// Save payment event to database
-  static Future<void> _savePaymentEvent(
-    String eventType,
-    String orderId,
-    String userId,
-    double amount,
-    String paymentMethod,
-    Map<String, dynamic>? additionalData,
-  ) async {
-    try {
-      // TODO: Save to Supabase payment_events table
-      print('Payment event saved: $eventType for order $orderId');
-    } catch (e) {
-      print('Error saving payment event: $e');
-    }
-  }
-
-  // ==================== DELIVERY ANALYTICS ====================
-
-  /// Track courier assignment
-  static Future<void> trackCourierAssigned({
-    required String orderId,
-    required String courierId,
-    required String courierName,
-    required String pickupLocation,
-    required String deliveryLocation,
-    double? estimatedDistance,
-    Duration? estimatedTime,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventCourierAssigned,
-        'event_type': 'delivery_event',
-        'order_id': orderId,
-        'courier_id': courierId,
-        'courier_name': courierName,
-        'pickup_location': pickupLocation,
-        'delivery_location': deliveryLocation,
-        'estimated_distance_km': estimatedDistance,
-        'estimated_time_minutes': estimatedTime?.inMinutes,
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking courier assignment: $e');
-    }
-  }
-
-  /// Track delivery start
-  static Future<void> trackDeliveryStarted({
-    required String orderId,
-    required String courierId,
-    required String courierName,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventDeliveryStarted,
-        'event_type': 'delivery_event',
-        'order_id': orderId,
-        'courier_id': courierId,
-        'courier_name': courierName,
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking delivery start: $e');
-    }
-  }
-
-  /// Track delivery completion
-  static Future<void> trackDeliveryCompleted({
-    required String orderId,
-    required String courierId,
-    required String courierName,
-    required Duration actualDeliveryTime,
-    double? actualDistance,
-    String? customerRating,
-    String? customerFeedback,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventDeliveryCompleted,
-        'event_type': 'delivery_event',
-        'order_id': orderId,
-        'courier_id': courierId,
-        'courier_name': courierName,
-        'actual_delivery_time_minutes': actualDeliveryTime.inMinutes,
-        'actual_distance_km': actualDistance,
-        'customer_rating': customerRating,
-        'customer_feedback': customerFeedback,
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking delivery completion: $e');
-    }
-  }
-
-  /// Save delivery event to database
-  static Future<void> _saveDeliveryEvent(
-    String eventType,
-    String orderId,
-    String courierId,
-    Map<String, dynamic>? additionalData,
-  ) async {
-    try {
-      // TODO: Save to Supabase delivery_events table
-      print('Delivery event saved: $eventType for order $orderId');
-    } catch (e) {
-      print('Error saving delivery event: $e');
-    }
-  }
-
-  // ==================== USER ANALYTICS ====================
-
-  /// Track user registration
-  static Future<void> trackUserRegistration({
-    required String userId,
-    required String userType,
-    String? phone,
-    String? fullName,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventUserRegistration,
-        'event_type': 'user_event',
-        'user_id': userId,
-        'user_type': userType,
-        'phone': phone,
-        'full_name': fullName,
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking user registration: $e');
-    }
-  }
-
-  /// Track user login
-  static Future<void> trackUserLogin({
-    required String userId,
-    required String userType,
-    String? loginMethod,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventUserLogin,
-        'event_type': 'user_event',
-        'user_id': userId,
-        'user_type': userType,
-        'login_method': loginMethod,
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking user login: $e');
-    }
-  }
-
-  /// Track user logout
-  static Future<void> trackUserLogout({
-    required String userId,
-    required String userType,
-    Duration? sessionDuration,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventUserLogout,
-        'event_type': 'user_event',
-        'user_id': userId,
-        'user_type': userType,
-        'session_duration_minutes': sessionDuration?.inMinutes,
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking user logout: $e');
-    }
-  }
-
-  /// Save user event to database
-  static Future<void> _saveUserEvent(
-    String eventType,
-    String userId,
-    String userType,
-    Map<String, dynamic>? additionalData,
-  ) async {
-    try {
-      // TODO: Save to Supabase user_events table
-      print('User event saved: $eventType for user $userId');
-    } catch (e) {
-      print('Error saving user event: $e');
-    }
-  }
-
-  // ==================== ERROR TRACKING ====================
-
-  /// Track app error
-  static Future<void> trackError({
-    required String errorType,
-    required String errorMessage,
-    String? screen,
-    String? userId,
-    StackTrace? stackTrace,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventError,
-        'event_type': 'error_event',
-        'error_type': errorType,
-        'error_message': errorMessage,
-        'screen': screen,
-        'user_id': userId,
-        'stack_trace': stackTrace?.toString(),
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking error: $e');
-    }
-  }
-
-  /// Save error event to database
-  static Future<void> _saveErrorEvent(
-    String errorType,
-    String errorMessage,
-    String? screen,
-    String? userId,
-    StackTrace? stackTrace,
-    Map<String, dynamic>? additionalData,
-  ) async {
-    try {
-      // TODO: Save to Supabase error_logs table
-      print('Error event saved: $errorType - $errorMessage');
-    } catch (e) {
-      print('Error saving error event: $e');
-    }
-  }
-
-  // ==================== PERFORMANCE TRACKING ====================
-
-  /// Track performance metric
-  static Future<void> trackPerformance({
-    required String metricName,
-    required dynamic value,
-    String? unit,
-    String? screen,
-    String? userId,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    try {
-      final supabase = _supabaseClient;
-      await supabase.from('analytics_events').insert({
-        'event_name': _eventPerformance,
-        'event_type': 'performance_metric',
-        'metric_name': metricName,
-        'value': value,
-        'unit': unit,
-        'screen': screen,
-        'user_id': userId,
-        'additional_data': additionalData,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      print('Error tracking performance: $e');
-    }
-  }
-
-  /// Save performance metric to database
-  static Future<void> _savePerformanceMetric(
-    String metricName,
-    dynamic value,
-    String? unit,
-    String? screen,
-    String? userId,
-    Map<String, dynamic>? additionalData,
-  ) async {
-    try {
-      // TODO: Save to Supabase performance_metrics table
-      print('Performance metric saved: $metricName = $value $unit');
-    } catch (e) {
-      print('Error saving performance metric: $e');
-    }
-  }
-
-  // ==================== BUSINESS INTELLIGENCE ====================
-
-  /// Get order analytics
-  static Future<Map<String, dynamic>> getOrderAnalytics({
-    required DateTime startDate,
-    required DateTime endDate,
-    String? userId,
-    String? userType,
-  }) async {
-    try {
-      // TODO: Query Supabase for order analytics
+      // TODO: Implement real-time dashboard query
       return {
-        'total_orders': 0,
-        'total_revenue': 0.0,
-        'average_order_value': 0.0,
-        'orders_by_status': {},
-        'orders_by_location': {},
-        'orders_by_payment_method': {},
+        'todayRevenue': 8500,
+        'todayOrders': 12,
+        'activeOrders': 3,
+        'avgResponseTime': 5,
+        'restaurantStatus': 'open',
       };
     } catch (e) {
-      print('Error getting order analytics: $e');
-      return {};
+      throw Exception('Failed to load real-time dashboard: $e');
     }
   }
 
-  /// Get user analytics
-  static Future<Map<String, dynamic>> getUserAnalytics({
-    required DateTime startDate,
-    required DateTime endDate,
-    String? userType,
-  }) async {
+  /// Get comparison analytics (current vs previous period)
+  static Future<Map<String, dynamic>> getComparisonAnalytics(
+    String partnerId,
+    String period,
+  ) async {
     try {
-      // TODO: Query Supabase for user analytics
+      // TODO: Implement comparison analytics
       return {
-        'total_users': 0,
-        'new_users': 0,
-        'active_users': 0,
-        'users_by_type': {},
-        'user_retention_rate': 0.0,
-        'average_session_duration': 0.0,
+        'currentPeriod': await getPartnerAnalytics(partnerId, period),
+        'previousPeriod': _getMockAnalytics(period), // Mock previous period
+        'improvements': {
+          'revenue': 12.5,
+          'orders': 8.3,
+          'customers': 15.7,
+          'rating': 0.2,
+        },
       };
     } catch (e) {
-      print('Error getting user analytics: $e');
-      return {};
+      throw Exception('Failed to load comparison analytics: $e');
     }
-  }
-
-  /// Get delivery analytics
-  static Future<Map<String, dynamic>> getDeliveryAnalytics({
-    required DateTime startDate,
-    required DateTime endDate,
-    String? courierId,
-  }) async {
-    try {
-      // TODO: Query Supabase for delivery analytics
-      return {
-        'total_deliveries': 0,
-        'completed_deliveries': 0,
-        'average_delivery_time': 0.0,
-        'deliveries_by_courier': {},
-        'deliveries_by_location': {},
-        'customer_satisfaction_rate': 0.0,
-      };
-    } catch (e) {
-      print('Error getting delivery analytics: $e');
-      return {};
-    }
-  }
-
-  // ==================== UTILITIES ====================
-
-  /// Set user ID for analytics
-  static Future<void> setUserId(String userId) async {
-    try {
-      // Store user ID in local storage or Supabase user metadata
-      print('User ID set for analytics: $userId');
-    } catch (e) {
-      print('Error setting user ID: $e');
-    }
-  }
-
-  /// Set user properties for analytics
-  static Future<void> setUserProperties(Map<String, String> properties) async {
-    try {
-      // Store user properties in local storage or Supabase user metadata
-      print('User properties set for analytics: $properties');
-    } catch (e) {
-      print('Error setting user properties: $e');
-    }
-  }
-
-  /// Reset analytics data
-  static Future<void> resetAnalytics() async {
-    try {
-      // Clear local analytics data
-      print('Analytics data reset');
-    } catch (e) {
-      print('Error resetting analytics: $e');
-    }
-  }
-
-  /// Dispose service
-  static void dispose() {
-    // Cleanup resources
   }
 }

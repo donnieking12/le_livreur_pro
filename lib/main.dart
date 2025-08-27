@@ -2,9 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'core/services/supabase_service.dart';
-import 'features/home/presentation/screens/home_screen.dart';
-import 'shared/theme/app_theme.dart';
+import 'package:le_livreur_pro/core/services/supabase_service.dart';
+import 'package:le_livreur_pro/features/home/presentation/screens/home_screen.dart';
+import 'package:le_livreur_pro/shared/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

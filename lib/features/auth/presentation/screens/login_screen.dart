@@ -1,49 +1,82 @@
-import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../shared/theme/app_theme.dart';
+import 'package:le_livreur_pro/core/models/user.dart';
+import 'package:le_livreur_pro/core/services/auth_service.dart';
+import 'package:le_livreur_pro/shared/theme/app_theme.dart';
+import 'package:le_livreur_pro/features/home/presentation/screens/home_screen.dart';
+import 'package:le_livreur_pro/features/auth/presentation/screens/otp_verification_screen.dart';
+import 'package:le_livreur_pro/features/auth/presentation/screens/signup_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   @override
+  void dispose() {
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Listen to auth state changes
+    ref.listen(authNotifierProvider, (previous, next) {
+      next.whenOrNull(
+        data: (user) {
+          if (user != null) {
+            // User is authenticated, navigate to home
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          }
+        },
+        error: (error, stackTrace) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error.toString()),
+              backgroundColor: AppTheme.errorRed,
+            ),
+          );
+        },
+      );
+    });
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Connexion'.tr()),
-        backgroundColor: AppTheme.primaryGreen,
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 40),
-              _buildLogo(),
-              const SizedBox(height: 40),
-              _buildPhoneField(),
-              const SizedBox(height: 20),
-              _buildPasswordField(),
-              const SizedBox(height: 30),
-              _buildLoginButton(),
-              const SizedBox(height: 20),
-              _buildForgotPassword(),
-              const SizedBox(height: 40),
-              _buildSignUpLink(),
-            ],
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 40),
+                _buildLogo(),
+                const SizedBox(height: 48),
+                _buildWelcomeText(),
+                const SizedBox(height: 32),
+                _buildPhoneField(),
+                const SizedBox(height: 24),
+                _buildLoginButton(),
+                const SizedBox(height: 24),
+                _buildDivider(),
+                const SizedBox(height: 24),
+                _buildSignUpLink(),
+                const SizedBox(height: 32),
+                _buildLanguageSelector(),
+              ],
+            ),
           ),
         ),
       ),
@@ -59,6 +92,13 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: BoxDecoration(
             color: AppTheme.primaryGreen,
             borderRadius: BorderRadius.circular(60),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryGreen.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
           child: const Icon(
             Icons.local_shipping,
@@ -66,20 +106,42 @@ class _LoginScreenState extends State<LoginScreen> {
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         Text(
           'Le Livreur Pro'.tr(),
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppTheme.primaryGreen,
-          ),
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryGreen,
+              ),
         ),
         const SizedBox(height: 8),
         Text(
           'Service de livraison professionnel'.tr(),
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppTheme.neutralGrey,
-          ),
+                color: AppTheme.neutralGrey,
+              ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWelcomeText() {
+    return Column(
+      children: [
+        Text(
+          'Bienvenue !'.tr(),
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Connectez-vous avec votre numéro de téléphone'.tr(),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.neutralGrey,
+              ),
+          textAlign: TextAlign.center,
         ),
       ],
     );
@@ -91,29 +153,44 @@ class _LoginScreenState extends State<LoginScreen> {
       keyboardType: TextInputType.phone,
       decoration: InputDecoration(
         labelText: 'Numéro de téléphone'.tr(),
-        prefixIcon: const Icon(Icons.phone),
-        hintText: '+2250700000000',
+        hintText: '07 00 00 00 00',
+        prefixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                '+225',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: AppTheme.primaryGreen,
+            width: 2,
+          ),
+        ),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Veuillez entrer votre numéro de téléphone'.tr();
         }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return TextFormField(
-      controller: _passwordController,
-      obscureText: true,
-      decoration: InputDecoration(
-        labelText: 'Mot de passe'.tr(),
-        prefixIcon: const Icon(Icons.lock),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Veuillez entrer votre mot de passe'.tr();
+        if (!AuthService.isValidPhoneNumber('+225$value')) {
+          return 'Numéro de téléphone invalide'.tr();
         }
         return null;
       },
@@ -122,29 +199,50 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildLoginButton() {
     return ElevatedButton(
-      onPressed: _isLoading ? null : _handleLogin,
+      onPressed: _isLoading ? null : _sendOTP,
       style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
         backgroundColor: AppTheme.primaryGreen,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 2,
       ),
       child: _isLoading
-          ? const CircularProgressIndicator(color: Colors.white)
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
           : Text(
-              'Se connecter'.tr(),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              'Recevoir le code de vérification'.tr(),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
     );
   }
 
-  Widget _buildForgotPassword() {
-    return TextButton(
-      onPressed: () {
-        // TODO: Navigate to forgot password screen
-      },
-      child: Text(
-        'Mot de passe oublié?'.tr(),
-        style: const TextStyle(color: AppTheme.primaryGreen),
-      ),
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        const Expanded(child: Divider()),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'ou'.tr(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.neutralGrey,
+                ),
+          ),
+        ),
+        const Expanded(child: Divider()),
+      ],
     );
   }
 
@@ -154,17 +252,22 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Text(
           'Pas encore de compte? '.tr(),
-          style: const TextStyle(color: AppTheme.neutralGrey),
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         TextButton(
           onPressed: () {
-            // TODO: Navigate to sign up screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SignUpScreen(),
+              ),
+            );
           },
           child: Text(
             'S\'inscrire'.tr(),
             style: const TextStyle(
               color: AppTheme.primaryGreen,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
@@ -172,31 +275,103 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      
-      // TODO: Implement actual login logic
-      await Future.delayed(const Duration(seconds: 2));
-      
-      setState(() => _isLoading = false);
-      
-      // For now, just show success message
+  Widget _buildLanguageSelector() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.language,
+            size: 20,
+            color: AppTheme.neutralGrey,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Langue / Language:'.tr(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.neutralGrey,
+                ),
+          ),
+          const SizedBox(width: 16),
+          _buildLanguageButton('Français', 'fr'),
+          const SizedBox(width: 8),
+          _buildLanguageButton('English', 'en'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageButton(String label, String languageCode) {
+    final isSelected = context.locale.languageCode == languageCode;
+
+    return GestureDetector(
+      onTap: () {
+        context.setLocale(Locale(languageCode));
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppTheme.primaryGreen : AppTheme.neutralGrey,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppTheme.neutralGrey,
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _sendOTP() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final phone = '+225${_phoneController.text.trim()}';
+      await AuthService.signInWithPhone(phone);
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Connexion réussie!'.tr()),
-            backgroundColor: AppTheme.successGreen,
+        // Navigate to OTP verification screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OTPVerificationScreen(
+              phoneNumber: phone,
+              isSignUp: false,
+            ),
           ),
         );
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
-  }
-
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 }
