@@ -531,8 +531,8 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             const SizedBox(height: 16),
             _buildChartPlaceholder('Répartition par commune'.tr()),
             const SizedBox(height: 16),
-            ...analytics.topCities.take(5).map((city) =>
-                _buildCityRow(city.name, city.orderCount, city.percentage)),
+            ...analytics.topCities.take(5).map((city) => _buildCityRow(
+                city['name'], city['orderCount'], city['percentage'])),
           ],
         ),
       ),

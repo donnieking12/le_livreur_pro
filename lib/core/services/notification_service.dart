@@ -16,13 +16,13 @@ class NotificationService {
 
       // Log only in debug mode
       if (kDebugMode) {
-        print(
+        debugPrint(
             'Notification service initialized (local notifications temporarily disabled)');
       }
     } catch (e) {
       // In production, log errors but don't crash
       if (kDebugMode) {
-        print('Error initializing notification service: $e');
+        debugPrint('Error initializing notification service: $e');
       }
     }
   }
@@ -34,11 +34,11 @@ class NotificationService {
     try {
       // This will be handled by the web platform
       if (kDebugMode) {
-        print('Web notifications initialized');
+        debugPrint('Web notifications initialized');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error initializing web notifications: $e');
+        debugPrint('Error initializing web notifications: $e');
       }
     }
   }
@@ -57,13 +57,13 @@ class NotificationService {
       } else {
         // For mobile, show console notification (temporarily)
         if (kDebugMode) {
-          print('📱 NOTIFICATION: $title - $body');
-          print('Payload: $payload, Data: $data');
+          debugPrint('📱 NOTIFICATION: $title - $body');
+          debugPrint('Payload: $payload, Data: $data');
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error showing notification: $e');
+        debugPrint('Error showing notification: $e');
       }
     }
   }
@@ -80,11 +80,11 @@ class NotificationService {
       // Use browser's native notification API
       // This will be handled by the web platform
       if (kDebugMode) {
-        print('Web notification: $title - $body');
+        debugPrint('Web notification: $title - $body');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error showing web notification: $e');
+        debugPrint('Error showing web notification: $e');
       }
     }
   }
@@ -171,7 +171,7 @@ class NotificationService {
   }) async {
     // TODO: Send via Supabase real-time or Firebase Cloud Functions
     if (kDebugMode) {
-      print('Sending notification to user $userId: $title - $body');
+      debugPrint('Sending notification to user $userId: $title - $body');
     }
 
     // For now, just show a console notification
@@ -191,7 +191,7 @@ class NotificationService {
   }) async {
     // TODO: Send via Supabase real-time or Firebase Cloud Functions
     if (kDebugMode) {
-      print('Sending notification to courier $courierId: $title - $body');
+      debugPrint('Sending notification to courier $courierId: $title - $body');
     }
 
     // For now, just show a console notification
@@ -211,7 +211,8 @@ class NotificationService {
   }) async {
     // TODO: Send via Supabase real-time or Firebase Cloud Functions
     if (kDebugMode) {
-      print('Sending notification to customer $customerId: $title - $body');
+      debugPrint(
+          'Sending notification to customer $customerId: $title - $body');
     }
 
     // For now, just show a console notification
@@ -233,29 +234,29 @@ class NotificationService {
   }) async {
     // TODO: Implement scheduling when local notifications are re-enabled
     if (kDebugMode) {
-      print('📅 SCHEDULED NOTIFICATION: $title - $body at $scheduledDate');
-      print('Payload: $payload, Data: $data');
+      debugPrint('📅 SCHEDULED NOTIFICATION: $title - $body at $scheduledDate');
+      debugPrint('Payload: $payload, Data: $data');
     }
   }
 
   /// Cancel all notifications (placeholder)
   static Future<void> cancelAllNotifications() async {
     if (kDebugMode) {
-      print('All notifications cancelled (placeholder)');
+      debugPrint('All notifications cancelled (placeholder)');
     }
   }
 
   /// Cancel specific notification (placeholder)
   static Future<void> cancelNotification(int id) async {
     if (kDebugMode) {
-      print('Notification $id cancelled (placeholder)');
+      debugPrint('Notification $id cancelled (placeholder)');
     }
   }
 
   /// Get pending notifications (placeholder)
   static Future<List<dynamic>> getPendingNotifications() async {
     if (kDebugMode) {
-      print('Getting pending notifications (placeholder)');
+      debugPrint('Getting pending notifications (placeholder)');
     }
     return [];
   }
@@ -264,7 +265,7 @@ class NotificationService {
   static void dispose() {
     // Cleanup resources
     if (kDebugMode) {
-      print('Notification service disposed');
+      debugPrint('Notification service disposed');
     }
   }
 }

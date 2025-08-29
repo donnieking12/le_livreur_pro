@@ -395,7 +395,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
     );
   }
 
-  Widget _buildActivityItem(ActivityItem activity) {
+  Widget _buildActivityItem(RecentActivity activity) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -422,7 +422,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
                   style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
                 Text(
-                  activity.timestamp,
+                  _formatDateTime(activity.timestamp),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppTheme.neutralGrey,
@@ -642,6 +642,21 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
         return Icons.error;
       default:
         return Icons.info;
+    }
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 0) {
+      return 'Il y a ${difference.inDays} jour${difference.inDays > 1 ? 's' : ''}';
+    } else if (difference.inHours > 0) {
+      return 'Il y a ${difference.inHours} heure${difference.inHours > 1 ? 's' : ''}';
+    } else if (difference.inMinutes > 0) {
+      return 'Il y a ${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''}';
+    } else {
+      return 'À l\'instant';
     }
   }
 

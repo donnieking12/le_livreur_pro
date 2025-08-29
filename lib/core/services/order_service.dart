@@ -134,7 +134,7 @@ class OrderService {
 
       return order;
     } catch (e) {
-      print('Error creating package order: $e');
+      debugPrint('Error creating package order: $e');
       throw Exception('Failed to create package order: $e');
     }
   }
@@ -236,7 +236,7 @@ class OrderService {
 
       return order;
     } catch (e) {
-      print('Error creating marketplace order: $e');
+      debugPrint('Error creating marketplace order: $e');
       throw Exception('Failed to create marketplace order: $e');
     }
   }
@@ -254,7 +254,7 @@ class OrderService {
 
       return response.map((json) => DeliveryOrder.fromJson(json)).toList();
     } catch (e) {
-      print('Error getting user orders: $e');
+      debugPrint('Error getting user orders: $e');
       throw Exception('Failed to get user orders: $e');
     }
   }
@@ -272,7 +272,7 @@ class OrderService {
 
       return response.map((json) => DeliveryOrder.fromJson(json)).toList();
     } catch (e) {
-      print('Error getting recent orders: $e');
+      debugPrint('Error getting recent orders: $e');
       throw Exception('Failed to get recent orders: $e');
     }
   }
@@ -288,7 +288,7 @@ class OrderService {
 
       return DeliveryOrder.fromJson(response);
     } catch (e) {
-      print('Error getting order by ID: $e');
+      debugPrint('Error getting order by ID: $e');
       return null;
     }
   }
@@ -339,7 +339,7 @@ class OrderService {
         totalSpentXof: totalSpentXof,
       );
     } catch (e) {
-      print('Error getting user order stats: $e');
+      debugPrint('Error getting user order stats: $e');
       throw Exception('Failed to get user order stats: $e');
     }
   }
@@ -357,7 +357,7 @@ class OrderService {
 
       return true;
     } catch (e) {
-      print('Error cancelling order: $e');
+      debugPrint('Error cancelling order: $e');
       return false;
     }
   }
@@ -366,10 +366,10 @@ class OrderService {
   Future<bool> rateOrder(String orderId, int rating, String? feedback) async {
     try {
       // TODO: Implement rating system in database schema
-      print('Rating order $orderId: $rating stars, feedback: $feedback');
+      debugPrint('Rating order $orderId: $rating stars, feedback: $feedback');
       return true;
     } catch (e) {
-      print('Error rating order: $e');
+      debugPrint('Error rating order: $e');
       return false;
     }
   }

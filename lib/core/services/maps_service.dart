@@ -54,7 +54,7 @@ class MapsService {
       }
       return null;
     } catch (e) {
-      print('Error getting current location: $e');
+      debugPrint('Error getting current location: $e');
       return null;
     }
   }
@@ -213,7 +213,7 @@ class MapsService {
       // For now, return a placeholder
       return 'Address not available - implement Google Geocoding API';
     } catch (e) {
-      print('Error getting address: $e');
+      debugPrint('Error getting address: $e');
       return null;
     }
   }
@@ -225,7 +225,7 @@ class MapsService {
       // For now, return a placeholder
       return null;
     } catch (e) {
-      print('Error getting coordinates: $e');
+      debugPrint('Error getting coordinates: $e');
       return null;
     }
   }

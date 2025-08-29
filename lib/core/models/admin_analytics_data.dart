@@ -19,6 +19,43 @@ class AdminAnalyticsData {
     required this.customMetrics,
   });
 
+  // Computed getters for backward compatibility
+  double get totalRevenue => revenueAnalytics.totalRevenue;
+  int get totalOrders => orderAnalytics.totalOrders;
+  int get activeUsers => userAnalytics.totalUsers;
+  double get revenueGrowth => revenueAnalytics.revenueGrowth;
+  double get ordersGrowth => orderAnalytics.orderGrowthRate;
+  double get userGrowth => platformMetrics.platformGrowthRate;
+  double get revenuePerOrder =>
+      totalOrders > 0 ? totalRevenue / totalOrders : 0.0;
+  int get totalCustomers => userAnalytics.usersByType['customer'] ?? 0;
+
+  // Additional computed getters for analytics screen
+  double get successRate => orderAnalytics.completionRate;
+  double get successRateChange => orderAnalytics.orderGrowthRate;
+  double get averageCommission => platformMetrics.commissionRate;
+  int get totalCouriers => userAnalytics.usersByType['courier'] ?? 0;
+  int get totalPartners => userAnalytics.usersByType['partner'] ?? 0;
+  double get averageDeliveryTime => orderAnalytics.averageDeliveryTime;
+  double get cancellationRate =>
+      (orderAnalytics.cancelledOrders.toDouble() / orderAnalytics.totalOrders) *
+      100;
+  double get averageRating =>
+      customMetrics['customer_satisfaction']?.toDouble() ?? 4.5;
+  double get systemUptime => performanceMetrics.systemUptime;
+  double get responseTime => performanceMetrics.averageResponseTime;
+  List<Map<String, dynamic>> get topCities =>
+      geographicData.regionMetrics.entries
+          .map((e) => {
+                'name': e.key,
+                'orderCount': e.value.orderCount,
+                'percentage': ((e.value.orderCount.toDouble() /
+                            orderAnalytics.totalOrders) *
+                        100)
+                    .toStringAsFixed(1)
+              })
+          .toList();
+
   factory AdminAnalyticsData.fromJson(Map<String, dynamic> json) {
     return AdminAnalyticsData(
       platformMetrics: PlatformMetrics.fromJson(json['platform_metrics']),

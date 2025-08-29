@@ -152,6 +152,108 @@ class AdminService {
   // ==================== ORDER MANAGEMENT ====================
 
   /// Get all orders with filtering and pagination
+  static Future<List<DeliveryOrder>> getAllOrders({int limit = 50}) async {
+    try {
+      final response = await _supabase
+          .from('delivery_orders')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((json) => DeliveryOrder.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to load all orders: $e');
+    }
+  }
+
+  /// Get users by type
+  static Future<List<app_user.User>> getUsersByType(String userType) async {
+    try {
+      final response = await _supabase
+          .from('users')
+          .select()
+          .eq('user_type', userType)
+          .order('created_at', ascending: false);
+
+      return (response as List)
+          .map((json) => app_user.User.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to load users by type: $e');
+    }
+  }
+
+  /// Get all users
+  static Future<List<app_user.User>> getAllUsers() async {
+    try {
+      final response = await _supabase
+          .from('users')
+          .select()
+          .order('created_at', ascending: false);
+
+      return (response as List)
+          .map((json) => app_user.User.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to load all users: $e');
+    }
+  }
+
+  /// Get orders by status
+  static Future<List<DeliveryOrder>> getOrdersByStatus(String status) async {
+    try {
+      final response = await _supabase
+          .from('delivery_orders')
+          .select()
+          .eq('status', status)
+          .order('created_at', ascending: false);
+
+      return (response as List)
+          .map((json) => DeliveryOrder.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to load orders by status: $e');
+    }
+  }
+
+  /// Cancel order
+  static Future<void> cancelOrder(String orderId, String reason) async {
+    try {
+      await _supabase.from('delivery_orders').update({
+        'status': 'cancelled',
+        'cancellation_reason': reason,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', orderId);
+    } catch (e) {
+      throw Exception('Failed to cancel order: $e');
+    }
+  }
+
+  /// Toggle user status
+  static Future<void> toggleUserStatus(String userId, bool isActive) async {
+    try {
+      await _supabase.from('users').update({
+        'is_active': isActive,
+        'updated_at': DateTime.now().toIso8601String()
+      }).eq('id', userId);
+    } catch (e) {
+      throw Exception('Failed to toggle user status: $e');
+    }
+  }
+
+  /// Update setting
+  static Future<void> updateSetting(String key, dynamic value) async {
+    try {
+      // TODO: Implement real settings update
+      await Future.delayed(const Duration(milliseconds: 500));
+    } catch (e) {
+      throw Exception('Failed to update setting: $e');
+    }
+  }
+
+  /// Get all orders with filtering and pagination
   static Future<List<DeliveryOrder>> getOrders({
     int page = 1,
     int limit = 20,
@@ -243,10 +345,8 @@ class AdminService {
   // ==================== ANALYTICS ====================
 
   /// Get comprehensive admin analytics
-  static Future<AdminAnalyticsData> getAnalytics({
-    String period = '30d',
-    String? region,
-  }) async {
+  static Future<AdminAnalyticsData> getAnalytics(
+      [String period = '30d', String? region]) async {
     try {
       // For demo purposes, return mock data
       // In production, this would aggregate complex analytics data
@@ -262,7 +362,7 @@ class AdminService {
     String format = 'csv',
   }) async {
     try {
-      final analytics = await getAnalytics(period: period);
+      final analytics = await getAnalytics(period);
 
       // Create CSV content
       final csvLines = <String>[];

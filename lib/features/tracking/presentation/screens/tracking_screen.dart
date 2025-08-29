@@ -1006,7 +1006,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
         return LatLng(lat, lng);
       }
     } catch (e) {
-      print('Error parsing coordinates: $e');
+      debugPrint('Error parsing coordinates: $e');
     }
 
     return null;

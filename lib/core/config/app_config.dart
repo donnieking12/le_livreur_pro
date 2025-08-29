@@ -3,13 +3,17 @@ class AppConfig {
   // Supabase Configuration
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue:
-        'https://your-project.supabase.co', // Replace with your actual URL
+    defaultValue: 'https://demo.supabase.co', // Demo URL for development
   );
 
   static const String supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
-    defaultValue: 'your-anon-key-here', // Replace with your actual anon key
+    defaultValue: 'demo-key', // Demo key for development
+  );
+
+  static const String supabaseServiceRoleKey = String.fromEnvironment(
+    'SUPABASE_SERVICE_ROLE_KEY',
+    defaultValue: 'demo-service-key', // Demo service key for development
   );
 
   // Google Maps Configuration
@@ -63,9 +67,12 @@ class AppConfig {
   // Validation helpers
   static bool get isValidSupabaseConfig {
     return supabaseUrl.isNotEmpty &&
-        supabaseUrl != 'https://your-project.supabase.co' &&
+        !supabaseUrl.contains('demo.supabase.co') &&
+        !supabaseUrl.contains('your-project.supabase.co') &&
         supabaseAnonKey.isNotEmpty &&
-        supabaseAnonKey != 'your-anon-key-here';
+        supabaseAnonKey != 'demo-key' &&
+        supabaseAnonKey != 'your-anon-key-here' &&
+        supabaseAnonKey.startsWith('eyJ'); // JWT format validation
   }
 
   static bool get isValidGoogleMapsConfig {

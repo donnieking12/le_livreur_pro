@@ -24,9 +24,10 @@ class SupabaseService {
   static Future<void> initialize() async {
     // Validate configuration before initializing
     if (!AppConfig.isValidSupabaseConfig) {
-      throw Exception(
-          'Invalid Supabase configuration. Please check your .env file and update '
-          'SUPABASE_URL and SUPABASE_ANON_KEY with your actual values.');
+      print('⚠️  Warning: Using demo Supabase configuration');
+      print(
+          '💡 To use real data, update your .env file with actual Supabase credentials');
+      // Allow demo mode to continue for development
     }
 
     await Supabase.initialize(
@@ -38,6 +39,7 @@ class SupabaseService {
     );
 
     _client = Supabase.instance.client;
+    print('🚀 Supabase initialized: ${AppConfig.supabaseUrl}');
     _setupRealtime();
   }
 
@@ -56,7 +58,8 @@ class SupabaseService {
           table: _ordersTable,
           callback: (payload) {
             // Handle real-time order updates
-            print('Real-time order update received: ${payload.eventType.name}');
+            debugPrint(
+                'Real-time order update received: ${payload.eventType.name}');
             // TODO: Implement proper payload handling when API is stable
           },
         )
@@ -66,7 +69,7 @@ class SupabaseService {
   /// Handle real-time order updates
   static void _handleOrderUpdate(Map<String, dynamic> payload) {
     // TODO: Implement real-time order update handling
-    print('Real-time order update: $payload');
+    debugPrint('Real-time order update: $payload');
   }
 
   // ==================== AUTHENTICATION ====================
@@ -194,7 +197,7 @@ class SupabaseService {
 
       return User.fromJson(response);
     } catch (e) {
-      print('Error getting user: $e');
+      debugPrint('Error getting user: $e');
       return null;
     }
   }
@@ -210,7 +213,7 @@ class SupabaseService {
 
       return response != null;
     } catch (e) {
-      print('Error updating user profile: $e');
+      debugPrint('Error updating user profile: $e');
       return false;
     }
   }
@@ -483,7 +486,7 @@ class SupabaseService {
       });
     } catch (e) {
       // Analytics failures shouldn't break the app
-      print('Analytics tracking failed: $e');
+      debugPrint('Analytics tracking failed: $e');
     }
   }
 

@@ -32,7 +32,7 @@ class PaymentService {
   static Future<void> initialize() async {
     // TODO: Initialize payment provider SDKs
     if (kDebugMode) {
-      print('Payment service initialized');
+      debugPrint('Payment service initialized');
     }
   }
 
@@ -550,11 +550,11 @@ class PaymentService {
       });
 
       if (kDebugMode) {
-        print('Payment record created: $paymentRef');
+        debugPrint('Payment record created: $paymentRef');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to create payment record: $e');
+        debugPrint('Failed to create payment record: $e');
       }
       // Don't throw here to avoid breaking payment flow for logging issues
     }
@@ -591,11 +591,11 @@ class PaymentService {
           .eq('payment_ref', paymentRef);
 
       if (kDebugMode) {
-        print('Payment record updated: $paymentRef - $status');
+        debugPrint('Payment record updated: $paymentRef - $status');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to update payment record: $e');
+        debugPrint('Failed to update payment record: $e');
       }
     }
   }
@@ -664,7 +664,7 @@ class PaymentService {
       return response?['status'] as String? ?? _statusFailed;
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to get payment status: $e');
+        debugPrint('Failed to get payment status: $e');
       }
       return _statusFailed;
     }
@@ -689,7 +689,7 @@ class PaymentService {
           .toList();
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to get payment history: $e');
+        debugPrint('Failed to get payment history: $e');
       }
       return [];
     }
@@ -710,7 +710,7 @@ class PaymentService {
           .toList();
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to get order payments: $e');
+        debugPrint('Failed to get order payments: $e');
       }
       return [];
     }
@@ -759,7 +759,7 @@ class PaymentService {
       );
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to get payment summary: $e');
+        debugPrint('Failed to get payment summary: $e');
       }
       return null;
     }

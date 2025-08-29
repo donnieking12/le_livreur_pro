@@ -98,7 +98,7 @@ class CourierService {
             .length,
       );
     } catch (e) {
-      print('Error getting courier stats: $e');
+      debugPrint('Error getting courier stats: $e');
       throw Exception('Failed to get courier stats: $e');
     }
   }
@@ -117,7 +117,7 @@ class CourierService {
 
       return response.map((json) => DeliveryOrder.fromJson(json)).toList();
     } catch (e) {
-      print('Error getting available orders: $e');
+      debugPrint('Error getting available orders: $e');
       throw Exception('Failed to get available orders: $e');
     }
   }
@@ -139,7 +139,7 @@ class CourierService {
 
       return response.map((json) => DeliveryOrder.fromJson(json)).toList();
     } catch (e) {
-      print('Error getting courier orders: $e');
+      debugPrint('Error getting courier orders: $e');
       throw Exception('Failed to get courier orders: $e');
     }
   }
@@ -158,7 +158,7 @@ class CourierService {
 
       return response.map((json) => DeliveryOrder.fromJson(json)).toList();
     } catch (e) {
-      print('Error getting courier history: $e');
+      debugPrint('Error getting courier history: $e');
       throw Exception('Failed to get courier history: $e');
     }
   }
@@ -188,17 +188,18 @@ class CourierService {
       }).eq('id', orderId);
 
       // Track analytics
-      await AnalyticsService.trackCourierAssigned(
-        orderId: orderId,
-        courierId: courierId,
-        courierName: 'Courier', // TODO: Get actual courier name
-        pickupLocation: 'Pickup Location', // TODO: Get actual locations
-        deliveryLocation: 'Delivery Location',
-      );
+      // TODO: Implement AnalyticsService.trackCourierAssigned method
+      // await AnalyticsService.trackCourierAssigned(
+      //   orderId: orderId,
+      //   courierId: courierId,
+      //   courierName: 'Courier', // TODO: Get actual courier name
+      //   pickupLocation: 'Pickup Location', // TODO: Get actual locations
+      //   deliveryLocation: 'Delivery Location',
+      // );
 
       return true;
     } catch (e) {
-      print('Error accepting order: $e');
+      debugPrint('Error accepting order: $e');
       throw Exception('Failed to accept order: $e');
     }
   }
@@ -250,7 +251,7 @@ class CourierService {
 
       return true;
     } catch (e) {
-      print('Error updating order status: $e');
+      debugPrint('Error updating order status: $e');
       throw Exception('Failed to update order status: $e');
     }
   }
@@ -261,15 +262,16 @@ class CourierService {
       await updateOrderStatus(orderId, DeliveryStatus.courierEnRoute);
 
       // Track analytics
-      await AnalyticsService.trackDeliveryStarted(
-        orderId: orderId,
-        courierId: courierId,
-        courierName: 'Courier', // TODO: Get actual courier name
-      );
+      // TODO: Implement AnalyticsService.trackDeliveryStarted method
+      // await AnalyticsService.trackDeliveryStarted(
+      //   orderId: orderId,
+      //   courierId: courierId,
+      //   courierName: 'Courier', // TODO: Get actual courier name
+      // );
 
       return true;
     } catch (e) {
-      print('Error starting delivery: $e');
+      debugPrint('Error starting delivery: $e');
       return false;
     }
   }
@@ -288,7 +290,7 @@ class CourierService {
 
       return true;
     } catch (e) {
-      print('Error marking picked up: $e');
+      debugPrint('Error marking picked up: $e');
       return false;
     }
   }
@@ -309,17 +311,18 @@ class CourierService {
       await _updateCourierDeliveryCount(courierId);
 
       // Track analytics
-      await AnalyticsService.trackDeliveryCompleted(
-        orderId: orderId,
-        courierId: courierId,
-        courierName: 'Courier', // TODO: Get actual courier name
-        actualDeliveryTime:
-            const Duration(minutes: 30), // TODO: Calculate actual time
-      );
+      // TODO: Implement AnalyticsService.trackDeliveryCompleted method
+      // await AnalyticsService.trackDeliveryCompleted(
+      //   orderId: orderId,
+      //   courierId: courierId,
+      //   courierName: 'Courier', // TODO: Get actual courier name
+      //   actualDeliveryTime:
+      //       const Duration(minutes: 30), // TODO: Calculate actual time
+      // );
 
       return true;
     } catch (e) {
-      print('Error marking delivered: $e');
+      debugPrint('Error marking delivered: $e');
       return false;
     }
   }
@@ -337,7 +340,7 @@ class CourierService {
 
       return true;
     } catch (e) {
-      print('Error updating courier status: $e');
+      debugPrint('Error updating courier status: $e');
       return false;
     }
   }
@@ -354,7 +357,7 @@ class CourierService {
 
       return true;
     } catch (e) {
-      print('Error updating courier location: $e');
+      debugPrint('Error updating courier location: $e');
       return false;
     }
   }
@@ -405,7 +408,7 @@ class CourierService {
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', courierId);
     } catch (e) {
-      print('Error updating courier delivery count: $e');
+      debugPrint('Error updating courier delivery count: $e');
     }
   }
 
@@ -449,7 +452,7 @@ class CourierService {
         'period_end': endDate?.toIso8601String(),
       };
     } catch (e) {
-      print('Error calculating courier earnings: $e');
+      debugPrint('Error calculating courier earnings: $e');
       throw Exception('Failed to calculate courier earnings: $e');
     }
   }
@@ -507,7 +510,7 @@ class CourierService {
         totalCompletedDeliveries: totalDeliveries,
       );
     } catch (e) {
-      print('Error getting courier performance: $e');
+      debugPrint('Error getting courier performance: $e');
       throw Exception('Failed to get courier performance: $e');
     }
   }

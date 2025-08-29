@@ -40,7 +40,7 @@ class _CourierDashboardScreenState
         _currentPosition = position;
       });
     } catch (e) {
-      print('Error getting location: $e');
+      debugPrint('Error getting location: $e');
     }
   }
 

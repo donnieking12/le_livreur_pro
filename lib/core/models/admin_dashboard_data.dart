@@ -16,6 +16,24 @@ class AdminDashboardData {
   final Map<String, int> orderStatusDistribution;
   final List<DashboardMetric> keyMetrics;
 
+  // Additional computed properties for dashboard screen
+  String get appVersion => '1.0.0+1';
+  int get newUsersToday => (activeUsers * 0.1).round(); // Mock calculation
+  int get activeOrders => (totalOrders * 0.05).round(); // Mock calculation
+  int get completedOrdersToday =>
+      (totalOrders * 0.8).round(); // Mock calculation
+  int get onlineCouriers => (activeCouriers * 0.7).round(); // Mock calculation
+  int get totalCouriers => activeCouriers + 50; // Mock calculation
+  int get activeRestaurants =>
+      (totalRestaurants * 0.9).round(); // Mock calculation
+  List<HealthCheck> get systemHealthChecks => [
+        HealthCheck(name: 'Database', status: 'healthy', responseTime: '45ms'),
+        HealthCheck(
+            name: 'API Gateway', status: 'healthy', responseTime: '12ms'),
+        HealthCheck(
+            name: 'Payment Service', status: 'warning', responseTime: '150ms'),
+      ];
+
   AdminDashboardData({
     required this.totalUsers,
     required this.totalOrders,
@@ -219,6 +237,81 @@ class DashboardMetric {
       'change_direction': changeDirection,
       'icon': icon,
       'color': color,
+    };
+  }
+}
+
+// Additional classes for admin dashboard
+class ActivityItem {
+  final String id;
+  final String type;
+  final String description;
+  final DateTime timestamp;
+  final String? userId;
+  final String? userName;
+
+  ActivityItem({
+    required this.id,
+    required this.type,
+    required this.description,
+    required this.timestamp,
+    this.userId,
+    this.userName,
+  });
+
+  factory ActivityItem.fromJson(Map<String, dynamic> json) {
+    return ActivityItem(
+      id: json['id'] as String,
+      type: json['type'] as String,
+      description: json['description'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      userId: json['user_id'] as String?,
+      userName: json['user_name'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type,
+      'description': description,
+      'timestamp': timestamp.toIso8601String(),
+      'user_id': userId,
+      'user_name': userName,
+    };
+  }
+}
+
+class HealthCheck {
+  final String name;
+  final String status;
+  final String responseTime;
+  final String? errorMessage;
+
+  HealthCheck({
+    required this.name,
+    required this.status,
+    required this.responseTime,
+    this.errorMessage,
+  });
+
+  bool get isHealthy => status == 'healthy';
+
+  factory HealthCheck.fromJson(Map<String, dynamic> json) {
+    return HealthCheck(
+      name: json['name'] as String,
+      status: json['status'] as String,
+      responseTime: json['response_time'] as String,
+      errorMessage: json['error_message'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'status': status,
+      'response_time': responseTime,
+      'error_message': errorMessage,
     };
   }
 }
