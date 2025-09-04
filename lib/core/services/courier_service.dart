@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
-import 'package:le_livreur_pro/core/models/delivery_order_simple.dart';
+import 'package:le_livreur_pro/core/models/delivery_order.dart';
 import 'package:le_livreur_pro/core/models/user.dart' as app_user;
 import 'package:le_livreur_pro/core/services/analytics_service.dart';
 import 'package:le_livreur_pro/core/services/supabase_service.dart';

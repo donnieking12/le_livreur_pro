@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:le_livreur_pro/core/models/delivery_order_simple.dart';
+import 'package:le_livreur_pro/core/models/delivery_order.dart';
 import 'package:le_livreur_pro/core/services/auth_service.dart';
 import 'package:le_livreur_pro/core/services/order_service.dart';
 import 'package:le_livreur_pro/shared/theme/app_theme.dart';
@@ -170,6 +170,44 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
               style: const TextStyle(
                 fontSize: 14,
                 color: AppTheme.neutralGrey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCardLoading() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: 60,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              width: 80,
+              height: 14,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(7),
               ),
             ),
           ],
@@ -387,7 +425,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
   Widget _buildOrderItem(DeliveryOrder order) {
     final isActive = order.status.isActive;
     final timeAgo = _getTimeAgo(order.createdAt);
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -406,7 +444,8 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: _getStatusColor(order.status),
                     borderRadius: BorderRadius.circular(12),
@@ -424,7 +463,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              order.orderType == OrderType.package 
+              order.orderType == OrderType.package
                   ? order.packageDescription ?? 'Livraison de colis'
                   : 'Commande restaurant',
               style: const TextStyle(
@@ -477,7 +516,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                 ),
               ],
             ),
-            if (isActive) ..[
+            if (isActive) ...[
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -503,7 +542,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                   ),
                 ],
               ),
-            ] else if (order.status == DeliveryStatus.delivered) ..[
+            ] else if (order.status == DeliveryStatus.delivered) ...[
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -603,17 +642,29 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                   controller: scrollController,
                   children: [
                     _buildDetailRow('Numéro'.tr(), order.orderNumber),
-                    _buildDetailRow('Type'.tr(), order.orderType == OrderType.package ? 'Colis' : 'Restaurant'),
+                    _buildDetailRow(
+                        'Type'.tr(),
+                        order.orderType == OrderType.package
+                            ? 'Colis'
+                            : 'Restaurant'),
                     _buildDetailRow('Statut'.tr(), order.status.displayName),
-                    _buildDetailRow('Montant'.tr(), '${order.totalPriceXof} XOF'),
-                    _buildDetailRow('Distance'.tr(), '${order.distanceKm.toStringAsFixed(1)} km'),
-                    _buildDetailRow('Ramassage'.tr(), order.pickupAddress ?? 'Non spécifié'),
-                    _buildDetailRow('Livraison'.tr(), order.deliveryAddress ?? 'Non spécifié'),
+                    _buildDetailRow(
+                        'Montant'.tr(), '${order.totalPriceXof} XOF'),
+                    _buildDetailRow('Distance'.tr(),
+                        '${order.distanceKm.toStringAsFixed(1)} km'),
+                    _buildDetailRow('Ramassage'.tr(),
+                        order.pickupAddress ?? 'Non spécifié'),
+                    _buildDetailRow('Livraison'.tr(),
+                        order.deliveryAddress ?? 'Non spécifié'),
                     _buildDetailRow('Destinataire'.tr(), order.recipientName),
                     _buildDetailRow('Téléphone'.tr(), order.recipientPhone),
                     if (order.specialInstructions != null)
-                      _buildDetailRow('Instructions'.tr(), order.specialInstructions!),
-                    _buildDetailRow('Créé le'.tr(), DateFormat('dd/MM/yyyy à HH:mm').format(order.createdAt)),
+                      _buildDetailRow(
+                          'Instructions'.tr(), order.specialInstructions!),
+                    _buildDetailRow(
+                        'Créé le'.tr(),
+                        DateFormat('dd/MM/yyyy à HH:mm')
+                            .format(order.createdAt)),
                   ],
                 ),
               ),
@@ -666,10 +717,10 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
             onPressed: () async {
               Navigator.pop(context);
               final success = await ref.read(orderServiceProvider).cancelOrder(
-                order.id,
-                'Annulé par le client',
-              );
-              
+                    order.id,
+                    'Annulé par le client',
+                  );
+
               if (success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -677,7 +728,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                     backgroundColor: AppTheme.successGreen,
                   ),
                 );
-                
+
                 // Refresh orders
                 final userAsync = ref.read(currentUserProfileProvider);
                 final user = userAsync.value;

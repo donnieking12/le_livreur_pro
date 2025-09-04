@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:le_livreur_pro/core/models/delivery_order_simple.dart';
+import 'package:le_livreur_pro/core/models/delivery_order.dart';
 import 'package:le_livreur_pro/core/services/order_service.dart';
 import 'package:le_livreur_pro/shared/theme/app_theme.dart';
 

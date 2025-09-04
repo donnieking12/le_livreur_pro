@@ -14,7 +14,7 @@ final allUsersProvider = FutureProvider<List<app_user.User>>((ref) async {
 final usersByTypeProvider =
     FutureProvider.family<List<app_user.User>, app_user.UserType>(
         (ref, userType) async {
-  return await AdminService.getUsersByType(userType);
+  return await AdminService.getUsersByType(userType.name);
 });
 
 class AdminUsersScreen extends ConsumerStatefulWidget {

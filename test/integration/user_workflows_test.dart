@@ -8,6 +8,7 @@ import 'package:le_livreur_pro/core/models/delivery_order.dart';
 import 'package:le_livreur_pro/core/services/order_service.dart';
 import 'package:le_livreur_pro/core/services/pricing_service.dart';
 import 'package:le_livreur_pro/core/services/payment_service.dart';
+import 'package:le_livreur_pro/core/services/admin_service.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -216,8 +217,9 @@ void main() {
         // Test that order status updates correctly as courier progresses
         const orderId = 'test-order-status-updates';
 
-        // Create initial order
-        final order = await OrderService.createPackageOrder(
+        // Create initial order using the service instance
+        final orderService = OrderService();
+        final order = await orderService.createPackageOrder(
           customerId: 'test-customer-status',
           packageDescription: 'Status update test package',
           pickupLatitude: 5.3600,
@@ -234,26 +236,27 @@ void main() {
 
         expect(order.status, equals(DeliveryStatus.pending));
 
-        // Assign to courier
-        await OrderService.assignCourier(order.id, 'test-courier-id');
-        final assignedOrder = await OrderService.getOrderById(order.id);
+        // Assign to courier using AdminService
+        await AdminService.assignCourierToOrder(order.id, 'test-courier-id');
+        final assignedOrder = await orderService.getOrderById(order.id);
         expect(assignedOrder?.status, equals(DeliveryStatus.assigned));
 
-        // Mark courier en route
-        await OrderService.updateOrderStatus(
-            order.id, DeliveryStatus.courierEnRoute);
-        final enRouteOrder = await OrderService.getOrderById(order.id);
+        // Mark courier en route using AdminService
+        await AdminService.updateOrderStatus(
+            order.id, DeliveryStatus.courierEnRoute.name);
+        final enRouteOrder = await orderService.getOrderById(order.id);
         expect(enRouteOrder?.status, equals(DeliveryStatus.courierEnRoute));
 
-        // Mark picked up
-        await OrderService.updateOrderStatus(order.id, DeliveryStatus.pickedUp);
-        final pickedUpOrder = await OrderService.getOrderById(order.id);
+        // Mark picked up using AdminService
+        await AdminService.updateOrderStatus(
+            order.id, DeliveryStatus.pickedUp.name);
+        final pickedUpOrder = await orderService.getOrderById(order.id);
         expect(pickedUpOrder?.status, equals(DeliveryStatus.pickedUp));
 
-        // Mark delivered
-        await OrderService.updateOrderStatus(
-            order.id, DeliveryStatus.delivered);
-        final deliveredOrder = await OrderService.getOrderById(order.id);
+        // Mark delivered using AdminService
+        await AdminService.updateOrderStatus(
+            order.id, DeliveryStatus.delivered.name);
+        final deliveredOrder = await orderService.getOrderById(order.id);
         expect(deliveredOrder?.status, equals(DeliveryStatus.delivered));
       });
     });

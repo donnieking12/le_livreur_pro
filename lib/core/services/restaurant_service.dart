@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:math' as math;
 
 import 'package:le_livreur_pro/core/models/menu_item.dart';
+import 'package:le_livreur_pro/core/models/menu_category.dart';
+import 'package:le_livreur_pro/core/models/cart.dart';
 import 'package:le_livreur_pro/core/models/restaurant.dart';
 import 'package:le_livreur_pro/core/services/supabase_service.dart';
 
@@ -29,7 +32,8 @@ class RestaurantService {
   }
 
   /// Get restaurants by category
-  static Future<List<Restaurant>> getRestaurantsByCategory(String category) async {
+  static Future<List<Restaurant>> getRestaurantsByCategory(
+      String category) async {
     try {
       final response = await SupabaseService.client
           .from(_restaurantsTable)
@@ -91,19 +95,28 @@ class RestaurantService {
           .eq('is_active', true)
           .eq('is_verified', true);
 
-      final restaurants = response.map((json) => Restaurant.fromJson(json)).toList();
+      final restaurants =
+          response.map((json) => Restaurant.fromJson(json)).toList();
 
       // Filter by distance (simple calculation)
       return restaurants.where((restaurant) {
+        // Add null check
+        if (restaurant == null) return false;
         final distance = _calculateDistance(
-          latitude, longitude,
-          restaurant.latitude, restaurant.longitude,
+          latitude,
+          longitude,
+          restaurant.latitude,
+          restaurant.longitude,
         );
         return distance <= radiusKm;
       }).toList()
         ..sort((a, b) {
-          final distanceA = _calculateDistance(latitude, longitude, a.latitude, a.longitude);
-          final distanceB = _calculateDistance(latitude, longitude, b.latitude, b.longitude);
+          // Add null checks
+          if (a == null || b == null) return 0;
+          final distanceA =
+              _calculateDistance(latitude, longitude, a.latitude, a.longitude);
+          final distanceB =
+              _calculateDistance(latitude, longitude, b.latitude, b.longitude);
           return distanceA.compareTo(distanceB);
         });
     } catch (e) {
@@ -160,7 +173,7 @@ class RestaurantService {
   ) async {
     try {
       updates['updated_at'] = DateTime.now().toIso8601String();
-      
+
       final response = await SupabaseService.client
           .from(_restaurantsTable)
           .update(updates)
@@ -257,8 +270,7 @@ class RestaurantService {
     required int priceXof,
     String? categoryId,
     String? categoryName,
-    List<MenuItemVariation>? variations,
-    List<MenuItemAddon>? addons,
+    List<CartItemAddon>? addons,
     String? imageUrl,
     bool isPopular = false,
     bool isSpicy = false,
@@ -274,7 +286,6 @@ class RestaurantService {
             'price_xof': priceXof,
             'category_id': categoryId,
             'category_name': categoryName,
-            'variations': variations?.map((v) => v.toJson()).toList() ?? [],
             'addons': addons?.map((a) => a.toJson()).toList() ?? [],
             'image_url': imageUrl,
             'is_popular': isPopular,
@@ -300,7 +311,7 @@ class RestaurantService {
   ) async {
     try {
       updates['updated_at'] = DateTime.now().toIso8601String();
-      
+
       final response = await SupabaseService.client
           .from(_menuItemsTable)
           .update(updates)
@@ -315,15 +326,15 @@ class RestaurantService {
   }
 
   /// Get menu categories for restaurant
-  static Future<List<MenuCategory>> getMenuCategories(String restaurantId) async {
+  static Future<List<MenuCategory>> getMenuCategories(
+      String restaurantId) async {
     try {
       final response = await SupabaseService.client
           .from(_categoriesTable)
           .select()
           .eq('restaurant_id', restaurantId)
           .eq('is_active', true)
-          .order('display_order')
-          .order('name');
+          .order('display_order');
 
       return response.map((json) => MenuCategory.fromJson(json)).toList();
     } catch (e) {
@@ -334,18 +345,21 @@ class RestaurantService {
   // ==================== HELPER METHODS ====================
 
   /// Calculate distance between two points in kilometers
-  static double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+  static double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
     const double earthRadius = 6371; // Earth's radius in km
-    
+
     final double dLat = _degreesToRadians(lat2 - lat1);
     final double dLon = _degreesToRadians(lon2 - lon1);
-    
+
     final double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(_degreesToRadians(lat1)) * math.cos(_degreesToRadians(lat2)) *
-        math.sin(dLon / 2) * math.sin(dLon / 2);
-    
+        math.cos(_degreesToRadians(lat1)) *
+            math.cos(_degreesToRadians(lat2)) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+
     final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    
+
     return earthRadius * c;
   }
 
@@ -353,9 +367,6 @@ class RestaurantService {
     return degrees * (math.pi / 180);
   }
 }
-
-// Import math library at the top
-import 'dart:math' as math;
 
 // Riverpod providers for restaurant data
 final restaurantServiceProvider = Provider<RestaurantService>((ref) {
@@ -366,14 +377,18 @@ final allRestaurantsProvider = FutureProvider<List<Restaurant>>((ref) async {
   return RestaurantService.getAllRestaurants();
 });
 
-final restaurantByIdProvider = FutureProvider.family<Restaurant?, String>((ref, restaurantId) async {
+final restaurantByIdProvider =
+    FutureProvider.family<Restaurant?, String>((ref, restaurantId) async {
   return RestaurantService.getRestaurantById(restaurantId);
 });
 
-final menuItemsProvider = FutureProvider.family<List<MenuItem>, String>((ref, restaurantId) async {
+final menuItemsProvider =
+    FutureProvider.family<List<MenuItem>, String>((ref, restaurantId) async {
   return RestaurantService.getMenuItems(restaurantId);
 });
 
-final menuCategoriesProvider = FutureProvider.family<List<MenuCategory>, String>((ref, restaurantId) async {
+final menuCategoriesProvider =
+    FutureProvider.family<List<MenuCategory>, String>(
+        (ref, restaurantId) async {
   return RestaurantService.getMenuCategories(restaurantId);
 });

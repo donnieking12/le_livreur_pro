@@ -62,6 +62,18 @@ class AdminSettings {
       customSettings: customSettings ?? this.customSettings,
     );
   }
+
+  // Getters to access nested properties
+  bool get maintenanceMode => generalSettings.maintenanceMode;
+  bool get allowRegistrations => true; // Default value, adjust as needed
+  bool get autoAssignOrders => featureSettings.scheduledDeliveries;
+  double get baseCommissionRate =>
+      paymentSettings.commissionSettings.defaultCommissionRate;
+  int get baseDeliveryPrice => customSettings['default_delivery_fee'] ?? 1000;
+  double get baseZoneRadius => customSettings['max_delivery_distance'] ?? 5.0;
+  bool get enablePushNotifications => notificationSettings.pushNotifications;
+  bool get enableEmailNotifications => notificationSettings.emailNotifications;
+  bool get enableSmsNotifications => notificationSettings.smsNotifications;
 }
 
 class GeneralSettings {

@@ -265,6 +265,7 @@ class _RestaurantSettingsScreenState
                     'Logo'.tr(),
                     restaurant.logoUrl,
                     Icons.image,
+                    () {}, // Empty callback for now
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -273,6 +274,7 @@ class _RestaurantSettingsScreenState
                     'Bannière'.tr(),
                     restaurant.bannerUrl,
                     Icons.panorama,
+                    () {}, // Empty callback for now
                   ),
                 ),
               ],

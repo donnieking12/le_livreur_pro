@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:le_livreur_pro/core/models/delivery_order_simple.dart';
+import 'package:le_livreur_pro/core/models/delivery_order.dart';
 import 'package:le_livreur_pro/core/models/restaurant.dart';
 import 'package:le_livreur_pro/core/models/user.dart' as app_user;
 import 'package:le_livreur_pro/core/services/auth_service.dart';
@@ -31,7 +31,7 @@ class _PartnerDashboardScreenState
 
     return userProfileAsync.when(
       data: (user) {
-        if (user == null || user.userType != UserType.partner) {
+        if (user == null || user.userType != app_user.UserType.partner) {
           return Scaffold(
             appBar: AppBar(
               title: Text('Tableau de Bord Partenaire'.tr()),

@@ -325,25 +325,29 @@ class MenuService {
     try {
       final totalItems = await _supabase
           .from('menu_items')
-          .select('id', const FetchOptions(count: CountOption.exact))
-          .eq('restaurant_id', restaurantId);
+          .select('id')
+          .eq('restaurant_id', restaurantId)
+          .count(CountOption.exact);
 
       final availableItems = await _supabase
           .from('menu_items')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id')
           .eq('restaurant_id', restaurantId)
-          .eq('is_available', true);
+          .eq('is_available', true)
+          .count(CountOption.exact);
 
       final popularItems = await _supabase
           .from('menu_items')
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id')
           .eq('restaurant_id', restaurantId)
-          .eq('is_popular', true);
+          .eq('is_popular', true)
+          .count(CountOption.exact);
 
       final categories = await _supabase
           .from('menu_categories')
-          .select('id', const FetchOptions(count: CountOption.exact))
-          .eq('restaurant_id', restaurantId);
+          .select('id')
+          .eq('restaurant_id', restaurantId)
+          .count(CountOption.exact);
 
       return {
         'totalItems': totalItems.count,

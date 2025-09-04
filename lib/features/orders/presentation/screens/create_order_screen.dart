@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
-import 'package:le_livreur_pro/core/models/delivery_order_simple.dart';
+import 'package:le_livreur_pro/core/models/delivery_order.dart';
 import 'package:le_livreur_pro/core/services/auth_service.dart';
 import 'package:le_livreur_pro/core/services/order_service.dart';
 import 'package:le_livreur_pro/core/services/pricing_service.dart';
@@ -315,25 +315,23 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Prix de base:'.tr()),
-                      Text('${_pricingResult!['basePriceXof']} XOF'),
+                      Text('${_pricingResult!['basePrice']} XOF'),
                     ],
                   ),
-                  if ((_pricingResult!['additionalDistancePriceXof'] as int) >
-                      0)
+                  if ((_pricingResult!['distancePrice'] as int) > 0)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Distance supplémentaire:'.tr()),
-                        Text(
-                            '${_pricingResult!['additionalDistancePriceXof']} XOF'),
+                        Text('${_pricingResult!['distancePrice']} XOF'),
                       ],
                     ),
-                  if ((_pricingResult!['urgencyPriceXof'] as int) > 0)
+                  if ((_pricingResult!['priorityPrice'] as int) > 0)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Supplément urgence:'.tr()),
-                        Text('${_pricingResult!['urgencyPriceXof']} XOF'),
+                        Text('${_pricingResult!['priorityPrice']} XOF'),
                       ],
                     ),
                   const Divider(),
@@ -656,11 +654,11 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       setState(() {
         _pricingResult = {
           'distanceKm': distanceKm,
-          'basePriceXof': pricing['basePrice'],
-          'additionalDistancePriceXof': pricing['distancePrice'],
-          'urgencyPriceXof': pricing['priorityPrice'],
-          'fragilePriceXof': pricing['fragilePrice'],
-          'totalPriceXof': pricing['totalPrice'],
+          'basePrice': pricing['basePrice'],
+          'distancePrice': pricing['distancePrice'],
+          'priorityPrice': pricing['priorityPrice'],
+          'fragilePrice': pricing['fragilePrice'],
+          'totalPrice': pricing['totalPrice'],
           'baseZoneRadiusKm': pricing['baseZoneRadius'],
         };
         _isCalculatingPrice = false;

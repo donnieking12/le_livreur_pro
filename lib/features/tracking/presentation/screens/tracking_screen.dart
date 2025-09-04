@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import 'package:le_livreur_pro/core/models/delivery_order_simple.dart';
+import 'package:le_livreur_pro/core/models/delivery_order.dart';
 import 'package:le_livreur_pro/core/services/auth_service.dart';
 import 'package:le_livreur_pro/core/services/order_service.dart';
 import 'package:le_livreur_pro/core/providers/maps_providers.dart';
@@ -913,23 +913,32 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
     // Add courier location if available and order is active
     if (order.courierId != null && order.status.isActive) {
       final courierLocationAsync = ref.watch(courierLocationProvider);
-      final courierLocation = courierLocationAsync.currentLocation;
 
-      if (courierLocation != null) {
-        markers.add(
-          Marker(
-            markerId: const MarkerId('courier'),
-            position:
-                LatLng(courierLocation.latitude, courierLocation.longitude),
-            infoWindow: InfoWindow(
-              title: 'Coursier'.tr(),
-              snippet: 'Position actuelle',
-            ),
-            icon:
-                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          ),
-        );
-      }
+      courierLocationAsync.when(
+        data: (courierLocation) {
+          if (courierLocation != null) {
+            markers.add(
+              Marker(
+                markerId: const MarkerId('courier'),
+                position:
+                    LatLng(courierLocation.latitude, courierLocation.longitude),
+                infoWindow: InfoWindow(
+                  title: 'Coursier'.tr(),
+                  snippet: 'Position actuelle',
+                ),
+                icon: BitmapDescriptor.defaultMarkerWithHue(
+                    BitmapDescriptor.hueBlue),
+              ),
+            );
+          }
+        },
+        loading: () {
+          // Handle loading state if needed
+        },
+        error: (error, stack) {
+          // Handle error state if needed
+        },
+      );
     }
 
     // Get route if order is active

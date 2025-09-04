@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:le_livreur_pro/core/models/delivery_order_simple.dart';
+import 'package:le_livreur_pro/core/models/delivery_order.dart';
 import 'package:le_livreur_pro/core/models/user.dart';
 import 'package:le_livreur_pro/core/services/analytics_service.dart';
 import 'package:le_livreur_pro/core/services/pricing_service.dart';
@@ -104,11 +104,8 @@ class OrderService {
         deliveryLongitude: deliveryLongitude,
         pickupAddress: pickupAddress,
         deliveryAddress: deliveryAddress,
-        basePriceXof: pricingBreakdown['basePrice'] ?? 500,
-        baseZoneRadiusKm: pricingBreakdown['baseZoneRadius'] ?? 4.5,
-        additionalDistancePriceXof: pricingBreakdown['distancePrice'] ?? 0,
-        urgencyPriceXof: pricingBreakdown['priorityPrice'] ?? 0,
-        fragilePriceXof: pricingBreakdown['fragilePrice'] ?? 0,
+        deliveryFeeXof: pricingBreakdown['distancePrice'] ?? 0,
+        serviceFeeXof: pricingBreakdown['priorityPrice'] ?? 0,
         totalPriceXof: totalPriceXof,
         recipientName: recipientName,
         recipientPhone: recipientPhone,
@@ -202,11 +199,10 @@ class OrderService {
         deliveryLongitude: deliveryLongitude,
         pickupAddress: pickupAddress,
         deliveryAddress: deliveryAddress,
-        basePriceXof: pricingBreakdown['basePrice'] ?? 500,
-        baseZoneRadiusKm: pricingBreakdown['baseZoneRadius'] ?? 4.5,
-        additionalDistancePriceXof: pricingBreakdown['distancePrice'] ?? 0,
-        urgencyPriceXof: pricingBreakdown['priorityPrice'] ?? 0,
+        deliveryFeeXof: deliveryPriceXof,
+        serviceFeeXof: 0,
         totalPriceXof: totalPriceXof,
+        items: items,
         recipientName: recipientName,
         recipientPhone: recipientPhone,
         recipientEmail: recipientEmail,
@@ -438,57 +434,4 @@ class OrderStats {
       totalOrders > 0 ? completedOrders / totalOrders : 0.0;
   String get completionRateFormatted =>
       '${(completionRate * 100).toStringAsFixed(1)}%';
-}
-
-// Simple OrderItem for marketplace orders (without freezed)
-class OrderItem {
-  final String id;
-  final String menuItemId;
-  final String name;
-  final int unitPriceXof;
-  final int quantity;
-  final List<String> variations;
-  final List<String> addons;
-  final String? specialInstructions;
-  final int totalPriceXof;
-
-  const OrderItem({
-    required this.id,
-    required this.menuItemId,
-    required this.name,
-    required this.unitPriceXof,
-    required this.quantity,
-    this.variations = const [],
-    this.addons = const [],
-    this.specialInstructions,
-    required this.totalPriceXof,
-  });
-
-  factory OrderItem.fromJson(Map<String, dynamic> json) {
-    return OrderItem(
-      id: json['id'] as String,
-      menuItemId: json['menu_item_id'] as String,
-      name: json['name'] as String,
-      unitPriceXof: json['unit_price_xof'] as int,
-      quantity: json['quantity'] as int,
-      variations: List<String>.from(json['variations'] ?? []),
-      addons: List<String>.from(json['addons'] ?? []),
-      specialInstructions: json['special_instructions'] as String?,
-      totalPriceXof: json['total_price_xof'] as int,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'menu_item_id': menuItemId,
-      'name': name,
-      'unit_price_xof': unitPriceXof,
-      'quantity': quantity,
-      'variations': variations,
-      'addons': addons,
-      'special_instructions': specialInstructions,
-      'total_price_xof': totalPriceXof,
-    };
-  }
 }

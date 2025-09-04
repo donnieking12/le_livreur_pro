@@ -3,7 +3,7 @@ import 'package:le_livreur_pro/core/models/admin_dashboard_data.dart';
 import 'package:le_livreur_pro/core/models/admin_analytics_data.dart';
 import 'package:le_livreur_pro/core/models/admin_settings.dart';
 import 'package:le_livreur_pro/core/models/user.dart' as app_user;
-import 'package:le_livreur_pro/core/models/delivery_order_simple.dart';
+import 'package:le_livreur_pro/core/models/delivery_order.dart';
 
 class AdminService {
   static final _supabase = Supabase.instance.client;

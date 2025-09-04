@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import 'package:le_livreur_pro/core/models/delivery_order_simple.dart';
+import 'package:le_livreur_pro/core/models/delivery_order.dart';
 import 'package:le_livreur_pro/core/models/user.dart' as app_user;
 import 'package:le_livreur_pro/core/services/auth_service.dart';
 import 'package:le_livreur_pro/core/services/courier_service.dart';
@@ -1244,7 +1244,7 @@ class _CourierDashboardScreenState
   /// Build location overview map showing courier position and delivery zones
   Widget _buildLocationOverview() {
     final currentLocationAsync = ref.watch(currentLocationProvider);
-    final deliveryZones = ref.watch(deliveryZonesProvider);
+    final deliveryZonesAsync = ref.watch(deliveryZonesProvider);
 
     return Card(
       child: Padding(
@@ -1276,47 +1276,121 @@ class _CourierDashboardScreenState
                     ? LatLng(position.latitude, position.longitude)
                     : const LatLng(5.3600, -4.0083); // Default Abidjan
 
-                // Create markers for delivery zones
-                final markers = <Marker>{
-                  Marker(
-                    markerId: const MarkerId('my_location'),
-                    position: currentLocation,
-                    infoWindow: InfoWindow(
-                      title: 'Ma position'.tr(),
-                      snippet: 'Position actuelle',
+                return deliveryZonesAsync.when(
+                  data: (deliveryZones) {
+                    // Create markers for delivery zones
+                    final markers = <Marker>{
+                      Marker(
+                        markerId: const MarkerId('my_location'),
+                        position: currentLocation,
+                        infoWindow: InfoWindow(
+                          title: 'Ma position'.tr(),
+                          snippet: 'Position actuelle',
+                        ),
+                        icon: BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueBlue),
+                      ),
+                    };
+
+                    // Add delivery zone markers
+                    for (int i = 0; i < deliveryZones.length; i++) {
+                      final zone = deliveryZones[i];
+                      markers.add(
+                        Marker(
+                          markerId: MarkerId('zone_$i'),
+                          position: zone,
+                          infoWindow: InfoWindow(
+                            title: 'Zone de livraison ${i + 1}'.tr(),
+                          ),
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                              BitmapDescriptor.hueGreen),
+                        ),
+                      );
+                    }
+
+                    // Create circles for delivery zones
+                    final circles = <Circle>{};
+                    for (int i = 0; i < deliveryZones.length; i++) {
+                      final zone = deliveryZones[i];
+                      circles.add(
+                        Circle(
+                          circleId: CircleId('zone_circle_$i'),
+                          center: zone,
+                          radius: 2000, // 2km radius
+                          fillColor: AppTheme.primaryGreen.withOpacity(0.1),
+                          strokeColor: AppTheme.primaryGreen,
+                          strokeWidth: 2,
+                        ),
+                      );
+                    }
+
+                    return Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.neutralGreyLight),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: MapsWidget(
+                          initialCenter: currentLocation,
+                          initialZoom: 12.0,
+                          markers: markers,
+                          circles: circles,
+                          showMyLocation: false,
+                          showMyLocationButton: false,
+                          showZoomControls: false,
+                          showCompass: false,
+                          showDeliveryZones: true,
+                        ),
+                      ),
+                    );
+                  },
+                  loading: () => Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.grey[200],
                     ),
-                    icon: BitmapDescriptor.defaultMarkerWithHue(
-                        BitmapDescriptor.hueBlue),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                AppTheme.primaryGreen),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Chargement des zones...'.tr(),
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                };
-
-                // Add delivery zone markers
-                for (final zone in deliveryZones) {
-                  markers.add(zone.toMarker());
-                }
-
-                // Create circles for delivery zones
-                final circles =
-                    deliveryZones.map((zone) => zone.toCircle()).toSet();
-
-                return Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.neutralGreyLight),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: MapsWidget(
-                      initialCenter: currentLocation,
-                      initialZoom: 12.0,
-                      markers: markers,
-                      circles: circles,
-                      showMyLocation: false,
-                      showMyLocationButton: false,
-                      showZoomControls: false,
-                      showCompass: false,
-                      showDeliveryZones: true,
+                  error: (error, stack) => Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.grey[100],
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.location_off,
+                            size: 48,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Zones non disponibles'.tr(),
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -1378,25 +1452,32 @@ class _CourierDashboardScreenState
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildLocationStat(
-                  icon: Icons.location_city,
-                  label: 'Zones'.tr(),
-                  value: '${deliveryZones.where((z) => z.isActive).length}',
-                ),
-                _buildLocationStat(
-                  icon: Icons.access_time,
-                  label: 'En ligne'.tr(),
-                  value: _isOnline ? 'Oui'.tr() : 'Non'.tr(),
-                ),
-                _buildLocationStat(
-                  icon: Icons.gps_fixed,
-                  label: 'GPS'.tr(),
-                  value: currentLocationAsync.hasValue ? 'Actif' : 'Inactif',
-                ),
-              ],
+            deliveryZonesAsync.when(
+              data: (deliveryZones) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildLocationStat(
+                      icon: Icons.location_city,
+                      label: 'Zones'.tr(),
+                      value: '${deliveryZones.length}',
+                    ),
+                    _buildLocationStat(
+                      icon: Icons.access_time,
+                      label: 'En ligne'.tr(),
+                      value: _isOnline ? 'Oui'.tr() : 'Non'.tr(),
+                    ),
+                    _buildLocationStat(
+                      icon: Icons.gps_fixed,
+                      label: 'GPS'.tr(),
+                      value:
+                          currentLocationAsync.hasValue ? 'Actif' : 'Inactif',
+                    ),
+                  ],
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (error, stack) => const SizedBox.shrink(),
             ),
           ],
         ),
