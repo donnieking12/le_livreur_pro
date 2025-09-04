@@ -37,6 +37,7 @@ dependencies:
   # Utilities
   uuid: ^4.1.0
   shared_preferences: ^2.2.2
+  flutter_dotenv: ^5.1.0
 
   # Image and Media
   image_picker: ^1.0.4

@@ -85,15 +85,30 @@ cd le-livreur-pro
 flutter pub get
 
 # Configurer les variables d'environnement
-cp .env.example .env
+cp .env.template .env
+# Éditer le fichier .env avec vos clés API réelles
 
 # Lancer en mode développement
 flutter run -d web-server --web-port 8080
 ```
 
+#### Configuration des Identifiants Supabase
+
+Pour configurer votre projet avec les identifiants Supabase fournis :
+
+1. Copiez le fichier `.env.template` en `.env`
+2. Remplacez les valeurs suivantes dans le fichier `.env` :
+   ```
+   SUPABASE_URL=https://fnygxppfogfpwycbbhsv.supabase.co
+   SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZueWd4cHBmb2dmcHd5Y2JiaHN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0OTkxNDIsImV4cCI6MjA3MDA3NTE0Mn0.MMu4mvYF7lR7ST6uHwf8A_EeujhwXUQ3-SxLNnFTV9o
+   ```
+3. Configurez les autres clés API selon vos besoins (Google Maps, paiements, etc.)
+
 #### Configuration Complète
 
-Voir [DEPLOYMENT.md](DEPLOYMENT.md) pour les instructions détaillées de déploiement.
+Pour une configuration complète pas à pas, voir [COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md) pour les instructions détaillées.
+
+Voir [DEPLOYMENT.md](DEPLOYMENT.md) pour les instructions de déploiement avancées.
 
 ### 🏗️ Structure du Projet
 

@@ -248,7 +248,7 @@ CREATE POLICY "Users can view their own orders" ON delivery_orders FOR SELECT US
 
 Create a `.env` file in your project root:
 
-```env
+``env
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_ANON_KEY=your-anon-key-here
 GOOGLE_MAPS_API_KEY=your-google-maps-api-key
