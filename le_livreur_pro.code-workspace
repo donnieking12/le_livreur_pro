@@ -6,8 +6,8 @@
     }
   ],
   "settings": {
-    "dart.flutterSdkPath": "C:\\src\\flutter",
-    "dart.sdkPath": "C:\\src\\flutter\\bin\\cache\\dart-sdk",
+    "dart.flutterSdkPath": "C:\\Development\\flutter",
+    "dart.sdkPath": "C:\\Development\\flutter\\bin\\cache\\dart-sdk",
     "files.exclude": {
       "**/.git": true,
       "**/.svn": true,
