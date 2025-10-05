@@ -2,6 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:le_livreur_pro/core/config/app_config.dart';
 
 void main() {
+  setUpAll(() async {
+    // Initialize the dotenv package
+    await AppConfig.init();
+  });
+
   group('AppConfig', () {
     test('should have correct Supabase configuration', () {
       // Verify Supabase URL is set correctly
