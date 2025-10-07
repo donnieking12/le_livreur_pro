@@ -916,22 +916,20 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
 
       courierLocationAsync.when(
         data: (courierLocation) {
-          if (courierLocation != null) {
-            markers.add(
-              Marker(
-                markerId: const MarkerId('courier'),
-                position:
-                    LatLng(courierLocation.latitude, courierLocation.longitude),
-                infoWindow: InfoWindow(
-                  title: 'Coursier'.tr(),
-                  snippet: 'Position actuelle',
-                ),
-                icon: BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueBlue),
+          markers.add(
+            Marker(
+              markerId: const MarkerId('courier'),
+              position:
+                  LatLng(courierLocation.latitude, courierLocation.longitude),
+              infoWindow: InfoWindow(
+                title: 'Coursier'.tr(),
+                snippet: 'Position actuelle',
               ),
-            );
-          }
-        },
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueBlue),
+            ),
+          );
+                },
         loading: () {
           // Handle loading state if needed
         },

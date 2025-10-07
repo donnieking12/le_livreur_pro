@@ -372,7 +372,7 @@ class _PartnerDashboardScreenState
                       value: restaurant.acceptsOrders,
                       onChanged: (value) =>
                           _toggleRestaurantStatus(restaurantId, value),
-                      activeColor: AppTheme.primaryGreen,
+                      activeThumbColor: AppTheme.primaryGreen,
                     ),
                   ],
                 ),

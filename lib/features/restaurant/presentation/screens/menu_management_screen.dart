@@ -214,7 +214,7 @@ class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen>
             Switch(
               value: item.isAvailable,
               onChanged: (value) => _toggleItemAvailability(item, value),
-              activeColor: AppTheme.primaryGreen,
+              activeThumbColor: AppTheme.primaryGreen,
             ),
             PopupMenuButton(
               icon: const Icon(Icons.more_vert),
@@ -305,7 +305,7 @@ class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen>
             Switch(
               value: category.isActive,
               onChanged: (value) => _toggleCategoryStatus(category, value),
-              activeColor: AppTheme.primaryGreen,
+              activeThumbColor: AppTheme.primaryGreen,
             ),
             PopupMenuButton(
               icon: const Icon(Icons.more_vert),

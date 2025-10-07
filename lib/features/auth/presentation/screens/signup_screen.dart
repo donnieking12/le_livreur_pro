@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:le_livreur_pro/core/models/user.dart';
 import 'package:le_livreur_pro/core/services/auth_service.dart';
 import 'package:le_livreur_pro/shared/theme/app_theme.dart';
-import 'package:le_livreur_pro/features/auth/presentation/screens/otp_verification_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -17,15 +16,21 @@ class SignUpScreen extends ConsumerStatefulWidget {
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   UserType _selectedUserType = UserType.customer;
   bool _isLoading = false;
   bool _acceptTerms = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
     _fullNameController.dispose();
-    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -58,7 +63,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 const SizedBox(height: 32),
                 _buildFullNameField(),
                 const SizedBox(height: 20),
-                _buildPhoneField(),
+                _buildEmailField(),
+                const SizedBox(height: 20),
+                _buildPasswordField(),
+                const SizedBox(height: 20),
+                _buildConfirmPasswordField(),
                 const SizedBox(height: 24),
                 _buildUserTypeSelection(),
                 const SizedBox(height: 24),
@@ -128,32 +137,54 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     );
   }
 
-  Widget _buildPhoneField() {
+  Widget _buildEmailField() {
     return TextFormField(
-      controller: _phoneController,
-      keyboardType: TextInputType.phone,
+      controller: _emailController,
+      keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
-        labelText: 'Numéro de téléphone'.tr(),
-        hintText: '07 00 00 00 00',
-        prefixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                '+225',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
+        labelText: 'Adresse email'.tr(),
+        hintText: 'exemple@email.com',
+        prefixIcon: const Icon(Icons.email_outlined),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: AppTheme.primaryGreen,
+            width: 2,
+          ),
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Veuillez entrer votre adresse email'.tr();
+        }
+        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+          return 'Adresse email invalide'.tr();
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: _obscurePassword,
+      decoration: InputDecoration(
+        labelText: 'Mot de passe'.tr(),
+        hintText: 'Minimum 6 caractères',
+        prefixIcon: const Icon(Icons.lock_outline),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+          ),
+          onPressed: () {
+            setState(() {
+              _obscurePassword = !_obscurePassword;
+            });
+          },
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -168,10 +199,51 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Veuillez entrer votre numéro de téléphone'.tr();
+          return 'Veuillez entrer un mot de passe'.tr();
         }
-        if (!AuthService.isValidPhoneNumber('+225$value')) {
-          return 'Numéro de téléphone invalide'.tr();
+        if (value.length < 6) {
+          return 'Le mot de passe doit contenir au moins 6 caractères'.tr();
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildConfirmPasswordField() {
+    return TextFormField(
+      controller: _confirmPasswordController,
+      obscureText: _obscureConfirmPassword,
+      decoration: InputDecoration(
+        labelText: 'Confirmer le mot de passe'.tr(),
+        hintText: 'Retapez votre mot de passe',
+        prefixIcon: const Icon(Icons.lock_outline),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+          ),
+          onPressed: () {
+            setState(() {
+              _obscureConfirmPassword = !_obscureConfirmPassword;
+            });
+          },
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: AppTheme.primaryGreen,
+            width: 2,
+          ),
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Veuillez confirmer votre mot de passe'.tr();
+        }
+        if (value != _passwordController.text) {
+          return 'Les mots de passe ne correspondent pas'.tr();
         }
         return null;
       },
@@ -394,26 +466,36 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     });
 
     try {
-      final phone = '+225${_phoneController.text.trim()}';
-      await ref.read(authNotifierProvider.notifier).signUpWithPhone(
-            phone: phone,
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      
+      await ref.read(authNotifierProvider.notifier).signUpWithEmail(
+            email: email,
+            password: password,
             fullName: _fullNameController.text.trim(),
             userType: _selectedUserType,
           );
 
       if (mounted) {
-        // Navigate to OTP verification screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OTPVerificationScreen(
-              phoneNumber: phone,
-              isSignUp: true,
-              fullName: _fullNameController.text.trim(),
-              userType: _selectedUserType.name,
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('✅ Compte créé avec succès!'.tr()),
+                const SizedBox(height: 4),
+                Text('Vérifiez votre email pour confirmer votre compte.'.tr()),
+              ],
             ),
+            backgroundColor: AppTheme.successGreen,
+            duration: const Duration(seconds: 4),
           ),
         );
+        
+        // Navigate back to login
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
@@ -421,6 +503,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           SnackBar(
             content: Text(e.toString()),
             backgroundColor: AppTheme.errorRed,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

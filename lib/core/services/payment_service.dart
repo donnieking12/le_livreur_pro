@@ -1,6 +1,5 @@
 import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
-import 'package:uuid/uuid.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:le_livreur_pro/core/models/payment_models.dart';
 

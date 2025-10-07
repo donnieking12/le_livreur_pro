@@ -387,7 +387,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
       subtitle: Text(subtitle),
       value: value,
       onChanged: onChanged,
-      activeColor: AppTheme.primaryGreen,
+      activeThumbColor: AppTheme.primaryGreen,
     );
   }
 
@@ -454,7 +454,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
       subtitle: Text(enabled ? 'Activé' : 'Désactivé'),
       value: enabled,
       onChanged: (value) => _togglePaymentMethod(method, value),
-      activeColor: AppTheme.primaryGreen,
+      activeThumbColor: AppTheme.primaryGreen,
     );
   }
 

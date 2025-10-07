@@ -18,7 +18,7 @@ void main() {
   // Read the .env file
   final lines = envFile.readAsLinesSync();
 
-  Map<String, String> config = {};
+  final Map<String, String> config = {};
 
   // Parse the .env file
   for (var line in lines) {
@@ -54,13 +54,13 @@ void main() {
   print('\n--- Validation Results ---');
 
   // Supabase validation
-  bool isValidSupabase = validateSupabaseConfig(config);
+  final bool isValidSupabase = validateSupabaseConfig(config);
 
   // Google Maps validation
-  bool isValidGoogleMaps = validateGoogleMapsConfig(config);
+  final bool isValidGoogleMaps = validateGoogleMapsConfig(config);
 
   // Payment gateways validation
-  bool isValidPayment = validatePaymentConfig(config);
+  final bool isValidPayment = validatePaymentConfig(config);
 
   print('\n--- Summary ---');
   print('Supabase Configuration: ${isValidSupabase ? '✅ VALID' : '❌ INVALID'}');

@@ -1,14 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
-import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
-import 'package:le_livreur_pro/core/config/app_config.dart';
 import 'package:le_livreur_pro/core/models/user.dart';
 import 'package:le_livreur_pro/core/services/supabase_service.dart';
+import 'package:le_livreur_pro/core/services/demo_auth_service.dart';
 
 // Provider for current user profile
-final currentUserProfileProvider = FutureProvider<User?>((ref) async {
-  return await AuthService.getCurrentUserProfile();
+final currentUserProfileProvider = Provider<AsyncValue<User?>>((ref) {
+  return ref.watch(authNotifierProvider);
 });
 
 // Provider for auth state notifier
@@ -16,6 +15,9 @@ final authNotifierProvider =
     StateNotifierProvider<AuthNotifier, AsyncValue<User?>>((ref) {
   return AuthNotifier();
 });
+
+// Alias for backward compatibility  
+final currentUserProvider = authNotifierProvider;
 
 class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   AuthNotifier() : super(const AsyncValue.loading()) {
@@ -31,23 +33,56 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     }
   }
 
-  Future<void> signInWithPhone(String phone) async {
+  Future<void> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     try {
-      await AuthService.signInWithPhone(phone);
+      // Check if this is a demo account first  
+      if (DemoAuthService.isDemoEmail(email)) {
+        print('🧪 AuthNotifier: Using demo authentication');
+        final demoUser = await DemoAuthService.signInDemo(
+          email: email,
+          password: password,
+        );
+        
+        if (demoUser != null) {
+          print('✅ AuthNotifier: Demo login successful, updating state');
+          state = AsyncValue.data(demoUser);
+          return;
+        } else {
+          throw Exception('Demo credentials invalides (utilisez: demo123)');
+        }
+      }
+      
+      // Normal Supabase authentication
+      await AuthService.signInWithEmail(
+        email: email,
+        password: password,
+      );
+      final user = await AuthService.getCurrentUserProfile();
+      state = AsyncValue.data(user);
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
       rethrow;
     }
   }
 
-  Future<void> signUpWithPhone({
-    required String phone,
+  Future<void> signUpWithEmail({
+    required String email,
+    required String password,
     required String fullName,
     required UserType userType,
   }) async {
     try {
-      await AuthService.signUpWithPhone(
-        phone: phone,
+      // For demo emails, don't try to sign up - redirect to sign in
+      if (DemoAuthService.isDemoEmail(email)) {
+        throw Exception('Compte de démo existant. Utilisez "Se connecter" avec: $email / demo123');
+      }
+      
+      await AuthService.signUpWithEmail(
+        email: email,
+        password: password,
         fullName: fullName,
         userType: userType,
       );
@@ -97,46 +132,68 @@ class AuthService {
 
   // ==================== PHONE AUTHENTICATION ====================
 
-  /// Send OTP to phone number for sign in
-  static Future<void> signInWithPhone(String phone) async {
+  /// Sign in with email and password
+  static Future<void> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     try {
-      // Validate phone number format for Côte d'Ivoire
-      final normalizedPhone = _normalizePhoneNumber(phone);
-
-      await _client.auth.signInWithOtp(
-        phone: normalizedPhone,
-        shouldCreateUser: false, // Only sign in existing users
+      print('🔐 Attempting signin with email: $email');
+      
+      // Normal Supabase authentication (demo logic handled in AuthNotifier)
+      final response = await _client.auth.signInWithPassword(
+        email: email,
+        password: password,
       );
+      
+      print('✅ Signin response: User ID = ${response.user?.id}, Session = ${response.session != null}');
+      
+      if (response.user == null) {
+        throw Exception('Login failed: No user returned');
+      }
     } catch (e) {
+      print('❌ Signin error: $e');
       throw _handleAuthError(e);
     }
   }
 
-  /// Send OTP to phone number for sign up
-  static Future<void> signUpWithPhone({
-    required String phone,
+  /// Sign up with email and password
+  static Future<void> signUpWithEmail({
+    required String email,
+    required String password,
     required String fullName,
     required UserType userType,
     Map<String, dynamic>? additionalData,
   }) async {
     try {
-      // Validate phone number format
-      final normalizedPhone = _normalizePhoneNumber(phone);
-
       final userData = {
         'full_name': fullName,
         'user_type': userType.name,
-        'phone': normalizedPhone,
+        'email': email,
         'preferred_language': 'fr', // Default to French for Côte d'Ivoire
         ...?additionalData,
       };
 
-      await _client.auth.signInWithOtp(
-        phone: normalizedPhone,
-        shouldCreateUser: true,
+      print('🔑 Attempting signup with email: $email');
+      
+      final response = await _client.auth.signUp(
+        email: email,
+        password: password,
         data: userData,
       );
+
+      print('📧 Signup response: User ID = ${response.user?.id}, Session = ${response.session != null}');
+      
+      if (response.user != null) {
+        // Create user profile regardless of email confirmation status
+        await _createUserProfile(response.user!);
+        print('✅ User profile created successfully');
+      } else {
+        print('⚠️ Signup successful but user is null (email confirmation may be required)');
+        // Still throw success since this is expected behavior with email confirmation
+      }
     } catch (e) {
+      print('❌ Signup error: $e');
       throw _handleAuthError(e);
     }
   }
@@ -201,12 +258,46 @@ class AuthService {
     final authUser = getCurrentAuthUser();
     if (authUser == null) return null;
 
-    return await SupabaseService.getUserProfile(authUser.id);
+    try {
+      // Try to get from database first
+      final profile = await SupabaseService.getUserProfile(authUser.id);
+      if (profile != null) {
+        return profile;
+      }
+    } catch (e) {
+      print('⚠️ Could not fetch user profile from database: $e');
+    }
+    
+    // Fallback: Create user profile from auth metadata for development
+    print('👥 Creating fallback user profile from auth data');
+    final userData = authUser.userMetadata ?? {};
+    return User(
+      id: authUser.id,
+      phone: userData['phone'] ?? '',
+      fullName: userData['full_name'] ?? authUser.email ?? 'Demo User',
+      email: authUser.email,
+      userType: UserType.values.byName(
+        userData['user_type'] ?? 'customer',
+      ),
+      isActive: true,
+      isVerified: authUser.emailConfirmedAt != null,
+      preferredLanguage: userData['preferred_language'] ?? 'fr',
+      createdAt: authUser.createdAt != null
+          ? DateTime.parse(authUser.createdAt)
+          : DateTime.now(),
+      updatedAt: authUser.lastSignInAt != null
+          ? DateTime.parse(authUser.lastSignInAt!)
+          : DateTime.now(),
+    );
   }
 
   /// Sign out current user
   static Future<void> signOut() async {
     try {
+      // Sign out demo user if applicable
+      DemoAuthService.signOutDemo();
+      
+      // Sign out from Supabase
       await _client.auth.signOut();
     } catch (e) {
       throw Exception('Sign out failed: $e');
@@ -228,18 +319,22 @@ class AuthService {
   /// Create user profile in database after successful auth
   static Future<void> _createUserProfile(supabase.User authUser) async {
     try {
-      final userData = authUser.userMetadata;
+      final userData = authUser.userMetadata ?? {};
+      print('📄 Creating user profile with metadata: $userData');
 
       await SupabaseService.createUserProfile(
         userId: authUser.id,
-        phone: userData?['phone'] ?? '',
-        fullName: userData?['full_name'] ?? '',
+        phone: userData['phone'] ?? '',
+        fullName: userData['full_name'] ?? 'Utilisateur',
         userType: UserType.values.byName(
-          userData?['user_type'] ?? 'customer',
+          userData['user_type'] ?? 'customer',
         ),
       );
+      print('✅ User profile created in database');
     } catch (e) {
-      throw Exception('Failed to create user profile: $e');
+      print('❌ Failed to create user profile: $e');
+      // Don't throw here - profile creation failure shouldn't block auth
+      // throw Exception('Failed to create user profile: $e');
     }
   }
 
@@ -344,12 +439,18 @@ class AuthService {
 
   /// Handle authentication errors with localized messages
   static Exception _handleAuthError(dynamic error) {
+    print('🚨 Auth error details: $error');
+    
     if (error is supabase.AuthException) {
+      print('🚨 AuthException message: ${error.message}');
       switch (error.message.toLowerCase()) {
         case 'invalid phone number':
           return Exception('Numéro de téléphone invalide');
         case 'user not found':
           return Exception('Utilisateur non trouvé');
+        case 'invalid login credentials':
+        case 'email not confirmed':
+          return Exception('Email ou mot de passe incorrect, ou email non confirmé');
         case 'invalid otp':
         case 'token expired':
           return Exception('Code de vérification invalide ou expiré');
@@ -357,12 +458,16 @@ class AuthService {
           return Exception('Trop de tentatives. Veuillez réessayer plus tard');
         case 'signup disabled':
           return Exception('Les inscriptions sont temporairement désactivées');
+        case 'email address not confirmed':
+          return Exception('Veuillez confirmer votre email avant de vous connecter');
+        case 'signups not allowed for otp':
+          return Exception('Inscriptions par OTP désactivées. Utilisez l\'email.');
         default:
           return Exception('Erreur d\'authentification: ${error.message}');
       }
     }
 
-    return Exception('Erreur d\'authentification inattendue');
+    return Exception('Erreur d\'authentification inattendue: $error');
   }
 }
 
@@ -376,11 +481,6 @@ final authServiceProvider = Provider<AuthService>((ref) {
 /// Provider for current user session
 final currentSessionProvider = StateProvider<supabase.Session?>((ref) {
   return AuthService.getCurrentSession();
-});
-
-/// Provider for current user profile stream
-final currentUserProvider = FutureProvider<User?>((ref) async {
-  return await AuthService.getCurrentUserProfile();
 });
 
 /// Provider for authentication state stream

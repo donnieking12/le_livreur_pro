@@ -1,13 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:easy_localization/easy_localization.dart';
 
-import 'package:le_livreur_pro/core/models/user.dart';
 import 'package:le_livreur_pro/core/services/auth_service.dart';
 import 'package:le_livreur_pro/shared/theme/app_theme.dart';
 import 'package:le_livreur_pro/features/home/presentation/screens/home_screen.dart';
 import 'package:le_livreur_pro/features/auth/presentation/screens/otp_verification_screen.dart';
 import 'package:le_livreur_pro/features/auth/presentation/screens/signup_screen.dart';
+import 'package:le_livreur_pro/shared/widgets/auth_help_widget.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -18,12 +19,15 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -66,9 +70,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 48),
                 _buildWelcomeText(),
                 const SizedBox(height: 32),
-                _buildPhoneField(),
+                _buildEmailField(),
+                const SizedBox(height: 20),
+                _buildPasswordField(),
                 const SizedBox(height: 24),
                 _buildLoginButton(),
+                AuthHelpWidget(isSignUp: false),
                 const SizedBox(height: 24),
                 _buildDivider(),
                 const SizedBox(height: 24),
@@ -137,7 +144,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Connectez-vous avec votre numéro de téléphone'.tr(),
+          'Connectez-vous avec votre email et mot de passe'.tr(),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppTheme.neutralGrey,
               ),
@@ -147,32 +154,53 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildPhoneField() {
+  Widget _buildEmailField() {
     return TextFormField(
-      controller: _phoneController,
-      keyboardType: TextInputType.phone,
+      controller: _emailController,
+      keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
-        labelText: 'Numéro de téléphone'.tr(),
-        hintText: '07 00 00 00 00',
-        prefixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                '+225',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
+        labelText: 'Adresse email'.tr(),
+        hintText: 'exemple@email.com',
+        prefixIcon: const Icon(Icons.email_outlined),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: AppTheme.primaryGreen,
+            width: 2,
+          ),
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Veuillez entrer votre adresse email'.tr();
+        }
+        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+          return 'Adresse email invalide'.tr();
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: _obscurePassword,
+      decoration: InputDecoration(
+        labelText: 'Mot de passe'.tr(),
+        prefixIcon: const Icon(Icons.lock_outline),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+          ),
+          onPressed: () {
+            setState(() {
+              _obscurePassword = !_obscurePassword;
+            });
+          },
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -187,10 +215,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Veuillez entrer votre numéro de téléphone'.tr();
-        }
-        if (!AuthService.isValidPhoneNumber('+225$value')) {
-          return 'Numéro de téléphone invalide'.tr();
+          return 'Veuillez entrer votre mot de passe'.tr();
         }
         return null;
       },
@@ -199,7 +224,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Widget _buildLoginButton() {
     return ElevatedButton(
-      onPressed: _isLoading ? null : _sendOTP,
+      onPressed: _isLoading ? null : _signIn,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppTheme.primaryGreen,
         foregroundColor: Colors.white,
@@ -219,7 +244,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             )
           : Text(
-              'Recevoir le code de vérification'.tr(),
+              'Se connecter'.tr(),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -334,7 +359,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Future<void> _sendOTP() async {
+  Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -342,21 +367,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      final phone = '+225${_phoneController.text.trim()}';
-      await AuthService.signInWithPhone(phone);
-
-      if (mounted) {
-        // Navigate to OTP verification screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OTPVerificationScreen(
-              phoneNumber: phone,
-              isSignUp: false,
-            ),
-          ),
-        );
-      }
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      
+      await ref.read(authNotifierProvider.notifier).signInWithEmail(
+        email: email,
+        password: password,
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

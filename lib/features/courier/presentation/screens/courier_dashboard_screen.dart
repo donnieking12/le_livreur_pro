@@ -187,7 +187,7 @@ class _CourierDashboardScreenState
             Switch(
               value: _isOnline,
               onChanged: (value) => _toggleOnlineStatus(user.id),
-              activeColor: AppTheme.primaryGreen,
+              activeThumbColor: AppTheme.primaryGreen,
             ),
           ],
         ),

@@ -201,7 +201,7 @@ class SetupChecker {
   }
 
   void printSummary() {
-    print('\n' + '='*60);
+    print('\n${'='*60}');
     print('FINAL SETUP CHECK SUMMARY');
     print('='*60);
     
@@ -210,7 +210,7 @@ class SetupChecker {
       print('$status ${result.name}: ${result.message}');
     }
     
-    print('\n' + '='*60);
+    print('\n${'='*60}');
     final percentage = totalChecks > 0 ? (passedChecks / totalChecks * 100).round() : 0;
     print('PASSED: $passedChecks/$totalChecks ($percentage%)');
     

@@ -5,10 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:le_livreur_pro/core/models/delivery_order.dart';
-import 'package:le_livreur_pro/core/models/user.dart';
-import 'package:le_livreur_pro/core/services/analytics_service.dart';
 import 'package:le_livreur_pro/core/services/pricing_service.dart';
-import 'package:le_livreur_pro/core/services/supabase_service.dart';
 
 final orderServiceProvider = Provider<OrderService>((ref) {
   return OrderService();
@@ -242,6 +239,11 @@ class OrderService {
   /// Get all orders for a user
   Future<List<DeliveryOrder>> getUserOrders(String userId) async {
     try {
+      // For development - return demo data
+      return _getDemoUserOrders(userId);
+      
+      // TODO: Enable this for production
+      /*
       final response = await _supabase
           .from('delivery_orders')
           .select()
@@ -249,6 +251,7 @@ class OrderService {
           .order('created_at', ascending: false);
 
       return response.map((json) => DeliveryOrder.fromJson(json)).toList();
+      */
     } catch (e) {
       debugPrint('Error getting user orders: $e');
       throw Exception('Failed to get user orders: $e');
@@ -292,6 +295,37 @@ class OrderService {
   /// Get user order statistics
   Future<OrderStats> getUserOrderStats(String userId) async {
     try {
+      // For development - calculate from demo data
+      final orders = _getDemoUserOrders(userId);
+      
+      final int totalOrders = orders.length;
+      int activeOrders = 0;
+      int completedOrders = 0;
+      int cancelledOrders = 0;
+      int totalSpentXof = 0;
+
+      for (final order in orders) {
+        totalSpentXof += order.totalPriceXof;
+
+        if (order.status.isActive) {
+          activeOrders++;
+        } else if (order.status == DeliveryStatus.delivered) {
+          completedOrders++;
+        } else if (order.status == DeliveryStatus.cancelled) {
+          cancelledOrders++;
+        }
+      }
+
+      return OrderStats(
+        totalOrders: totalOrders,
+        activeOrders: activeOrders,
+        completedOrders: completedOrders,
+        cancelledOrders: cancelledOrders,
+        totalSpentXof: totalSpentXof,
+      );
+      
+      // TODO: Enable this for production
+      /*
       final response = await _supabase
           .from('delivery_orders')
           .select('status, total_price_xof, created_at')
@@ -334,6 +368,7 @@ class OrderService {
         cancelledOrders: cancelledOrders,
         totalSpentXof: totalSpentXof,
       );
+      */
     } catch (e) {
       debugPrint('Error getting user order stats: $e');
       throw Exception('Failed to get user order stats: $e');
@@ -409,6 +444,141 @@ class OrderService {
       return order.createdAt.isAfter(startDate) &&
           order.createdAt.isBefore(endDate);
     }).toList();
+  }
+
+  /// Demo data for development
+  List<DeliveryOrder> _getDemoUserOrders(String userId) {
+    final now = DateTime.now();
+    return [
+      DeliveryOrder(
+        id: 'demo_order_1',
+        orderNumber: 'CMD-2024-001',
+        customerId: userId,
+        orderType: OrderType.package,
+        packageDescription: 'Documents importants',
+        status: DeliveryStatus.inTransit,
+        paymentStatus: PaymentStatus.completed,
+        priorityLevel: 2,
+        pickupLatitude: 5.3364,
+        pickupLongitude: -4.0267,
+        deliveryLatitude: 5.2893,
+        deliveryLongitude: -3.9926,
+        pickupAddress: 'Cocody, Angré 7ème Tranche, Villa 25',
+        deliveryAddress: 'Plateau, Immeuble Alpha 2000, 5ème étage',
+        deliveryFeeXof: 1250,
+        serviceFeeXof: 200,
+        totalPriceXof: 1950,
+        recipientName: 'Adjoua Kouassi',
+        recipientPhone: '+225 07 98 76 54 32',
+        paymentMethod: PaymentMethod.orangeMoney,
+        fragile: false,
+        requiresSignature: true,
+        createdAt: now.subtract(const Duration(hours: 2)),
+        updatedAt: now.subtract(const Duration(minutes: 30)),
+      ),
+      DeliveryOrder(
+        id: 'demo_order_2',
+        orderNumber: 'CMD-2024-002',
+        customerId: userId,
+        orderType: OrderType.marketplace,
+        restaurantId: 'demo_1',
+        status: DeliveryStatus.delivered,
+        paymentStatus: PaymentStatus.completed,
+        priorityLevel: 1,
+        pickupLatitude: 5.3599517,
+        pickupLongitude: -3.9715851,
+        deliveryLatitude: 5.3364,
+        deliveryLongitude: -4.0267,
+        pickupAddress: 'Chez Mama Adjoua, Cocody Angré',
+        deliveryAddress: 'Cocody, Angré 7ème Tranche, Villa 25',
+        deliveryFeeXof: 500,
+        serviceFeeXof: 0,
+        totalPriceXof: 6500,
+        items: [
+          OrderItem(
+            id: 'item_1',
+            menuItemId: 'menu_1_1',
+            name: 'Attiéké Poisson',
+            unitPriceXof: 2500,
+            quantity: 1,
+            totalPriceXof: 2500,
+          ),
+          OrderItem(
+            id: 'item_2',
+            menuItemId: 'menu_1_2',
+            name: 'Kedjenou de Poulet',
+            unitPriceXof: 3000,
+            quantity: 1,
+            totalPriceXof: 3000,
+          ),
+          OrderItem(
+            id: 'item_3',
+            menuItemId: 'menu_1_3',
+            name: 'Alloco',
+            unitPriceXof: 1500,
+            quantity: 1,
+            totalPriceXof: 1500,
+          ),
+        ],
+        recipientName: 'Jean Kouassi',
+        recipientPhone: '+225 07 12 34 56 78',
+        paymentMethod: PaymentMethod.cashOnDelivery,
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(days: 1, hours: -2)),
+      ),
+      DeliveryOrder(
+        id: 'demo_order_3',
+        orderNumber: 'CMD-2024-003',
+        customerId: userId,
+        orderType: OrderType.package,
+        packageDescription: 'Vêtements',
+        status: DeliveryStatus.cancelled,
+        paymentStatus: PaymentStatus.refunded,
+        priorityLevel: 1,
+        pickupLatitude: 5.2918802,
+        pickupLongitude: -4.0197926,
+        deliveryLatitude: 5.3247036,
+        deliveryLongitude: -4.0285659,
+        pickupAddress: 'Treichville, Rue 12, près du marché',
+        deliveryAddress: 'Plateau, Avenue Chardy',
+        deliveryFeeXof: 500,
+        serviceFeeXof: 0,
+        totalPriceXof: 500,
+        recipientName: 'Marie Traoré',
+        recipientPhone: '+225 07 55 44 33 22',
+        paymentMethod: PaymentMethod.mtnMoney,
+        specialInstructions: 'Annulé par le client',
+        createdAt: now.subtract(const Duration(days: 3)),
+        updatedAt: now.subtract(const Duration(days: 3, hours: -1)),
+      ),
+      DeliveryOrder(
+        id: 'demo_order_4',
+        orderNumber: 'CMD-2024-004',
+        customerId: userId,
+        orderType: OrderType.package,
+        packageDescription: 'Médicaments',
+        status: DeliveryStatus.pending,
+        paymentStatus: PaymentStatus.pending,
+        priorityLevel: 3,
+        pickupLatitude: 5.3247036,
+        pickupLongitude: -4.0285659,
+        deliveryLatitude: 5.3364,
+        deliveryLongitude: -4.0267,
+        pickupAddress: 'Pharmacie du Plateau, Avenue Chardy',
+        deliveryAddress: 'Cocody, Angré 7ème Tranche, Villa 25',
+        deliveryFeeXof: 500,
+        serviceFeeXof: 400,
+        totalPriceXof: 1900,
+        recipientName: 'Jean Kouassi',
+        recipientPhone: '+225 07 12 34 56 78',
+        paymentMethod: PaymentMethod.wave,
+        fragile: true,
+        requiresSignature: true,
+        specialInstructions: 'Livraison express - médicaments urgents',
+        createdAt: now.subtract(const Duration(minutes: 15)),
+        updatedAt: now.subtract(const Duration(minutes: 15)),
+      ),
+    ];
   }
 }
 

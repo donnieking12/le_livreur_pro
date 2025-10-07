@@ -56,16 +56,21 @@ class AppConfig {
 
   // Validation helpers
   static bool get isValidSupabaseConfig {
-    final url = dotenv.env['SUPABASE_URL'] ?? 'https://demo.supabase.co';
-    final key = dotenv.env['SUPABASE_ANON_KEY'] ?? 'demo-key';
+    try {
+      final url = dotenv.env['SUPABASE_URL'] ?? 'https://demo.supabase.co';
+      final key = dotenv.env['SUPABASE_ANON_KEY'] ?? 'demo-key';
 
-    return url.isNotEmpty &&
-        !url.contains('demo.supabase.co') &&
-        !url.contains('your-project.supabase.co') &&
-        key.isNotEmpty &&
-        key != 'demo-key' &&
-        key != 'your-anon-key-here' &&
-        key.startsWith('eyJ'); // JWT format validation
+      return url.isNotEmpty &&
+          !url.contains('demo.supabase.co') &&
+          !url.contains('your-project.supabase.co') &&
+          key.isNotEmpty &&
+          key != 'demo-key' &&
+          key != 'your-anon-key-here' &&
+          key.startsWith('eyJ'); // JWT format validation
+    } catch (e) {
+      // If dotenv is not initialized, return false
+      return false;
+    }
   }
 
   static bool get isValidGoogleMapsConfig {

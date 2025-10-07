@@ -2,7 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:le_livreur_pro/core/models/address.dart';
 import 'package:le_livreur_pro/shared/theme/app_theme.dart';
+import 'package:le_livreur_pro/shared/widgets/address_picker_widget.dart';
+import 'package:le_livreur_pro/features/orders/presentation/screens/create_order_screen.dart';
 
 class PackageDeliveryTab extends ConsumerStatefulWidget {
   const PackageDeliveryTab({super.key});
@@ -21,6 +24,8 @@ class _PackageDeliveryTabState extends ConsumerState<PackageDeliveryTab> {
 
   String? _selectedPickupAddress;
   String? _selectedDeliveryAddress;
+  Address? _pickupAddress;
+  Address? _deliveryAddress;
   String _selectedPaymentMethod = 'cash_on_delivery';
   bool _isFragile = false;
   bool _requiresSignature = false;
@@ -181,14 +186,16 @@ class _PackageDeliveryTabState extends ConsumerState<PackageDeliveryTab> {
             const SizedBox(height: 16),
             _buildAddressSelector(
               title: 'Adresse de récupération'.tr(),
-              value: _selectedPickupAddress,
+              value: _pickupAddress?.label,
+              subtitle: _pickupAddress?.fullAddress,
               onTap: () => _selectAddress(isPickup: true),
               icon: Icons.my_location,
             ),
             const SizedBox(height: 16),
             _buildAddressSelector(
               title: 'Adresse de livraison'.tr(),
-              value: _selectedDeliveryAddress,
+              value: _deliveryAddress?.label,
+              subtitle: _deliveryAddress?.fullAddress,
               onTap: () => _selectAddress(isPickup: false),
               icon: Icons.place,
             ),
@@ -201,6 +208,7 @@ class _PackageDeliveryTabState extends ConsumerState<PackageDeliveryTab> {
   Widget _buildAddressSelector({
     required String title,
     required String? value,
+    String? subtitle,
     required VoidCallback onTap,
     required IconData icon,
   }) {
@@ -234,8 +242,20 @@ class _PackageDeliveryTabState extends ConsumerState<PackageDeliveryTab> {
                           color: value != null
                               ? Colors.black
                               : AppTheme.neutralGrey,
+                          fontWeight: value != null ? FontWeight.w500 : FontWeight.normal,
                         ),
                   ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppTheme.neutralGrey,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -470,35 +490,65 @@ class _PackageDeliveryTabState extends ConsumerState<PackageDeliveryTab> {
     return _packageDescriptionController.text.isNotEmpty &&
         _recipientNameController.text.isNotEmpty &&
         _recipientPhoneController.text.isNotEmpty &&
-        _selectedPickupAddress != null &&
-        _selectedDeliveryAddress != null;
+        _pickupAddress != null &&
+        _deliveryAddress != null;
   }
 
   void _selectAddress({required bool isPickup}) {
-    // TODO: Implement address selection (navigate to address picker)
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title:
-            Text(isPickup ? 'Adresse de récupération' : 'Adresse de livraison'),
-        content:
-            const Text('Fonctionnalité de sélection d\'adresse à implémenter'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
-          ),
-        ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddressPickerWidget(
+          title: isPickup 
+              ? 'Adresse de récupération' 
+              : 'Adresse de livraison',
+          onAddressSelected: (address) {
+            setState(() {
+              if (isPickup) {
+                _pickupAddress = address;
+                _selectedPickupAddress = address.label;
+              } else {
+                _deliveryAddress = address;
+                _selectedDeliveryAddress = address.label;
+              }
+            });
+          },
+        ),
       ),
     );
   }
 
   void _createOrder() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement order creation
+      // Show success message and prepare order data
+      final orderData = {
+        'packageDescription': _packageDescriptionController.text,
+        'packageValue': _packageValueController.text.isNotEmpty 
+            ? int.tryParse(_packageValueController.text) 
+            : null,
+        'pickupAddress': _pickupAddress?.toJson(),
+        'deliveryAddress': _deliveryAddress?.toJson(),
+        'recipientName': _recipientNameController.text,
+        'recipientPhone': _recipientPhoneController.text,
+        'specialInstructions': _specialInstructionsController.text.isNotEmpty 
+            ? _specialInstructionsController.text 
+            : null,
+        'isFragile': _isFragile,
+        'requiresSignature': _requiresSignature,
+        'paymentMethod': _selectedPaymentMethod,
+      };
+      
+      // TODO: Navigate to CreateOrderScreen with this data
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CreateOrderScreen(),
+        ),
+      );
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Fonctionnalité de création de commande à implémenter'),
+        SnackBar(
+          content: Text('Commande prête à être créée'.tr()),
           backgroundColor: AppTheme.primaryGreen,
         ),
       );

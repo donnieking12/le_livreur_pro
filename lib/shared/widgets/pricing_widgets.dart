@@ -248,7 +248,7 @@ class _PricingCalculatorWidgetState
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _categoryCode,
+          initialValue: _categoryCode,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),

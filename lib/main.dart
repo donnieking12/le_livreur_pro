@@ -2,12 +2,16 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:le_livreur_pro/core/config/app_config.dart';
 import 'package:le_livreur_pro/core/services/supabase_service.dart';
 import 'package:le_livreur_pro/features/home/presentation/screens/home_screen.dart';
 import 'package:le_livreur_pro/shared/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Skip .env loading for web demo - use hardcoded values in SupabaseService
+  // TODO: Properly configure .env for production
 
   // Initialize Supabase
   await SupabaseService.initialize();

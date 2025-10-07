@@ -2,12 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:le_livreur_pro/shared/widgets/pricing_widgets.dart';
 import 'package:le_livreur_pro/shared/widgets/payment_status_widget.dart';
 import 'package:le_livreur_pro/shared/widgets/payment_integration_demo.dart';
 import 'package:le_livreur_pro/core/models/pricing_models.dart';
-import 'package:le_livreur_pro/core/models/payment_models.dart';
 import 'package:le_livreur_pro/shared/theme/app_theme.dart';
 
 // Test helper to wrap widgets with necessary providers

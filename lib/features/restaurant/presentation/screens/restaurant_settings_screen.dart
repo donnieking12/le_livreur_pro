@@ -388,7 +388,7 @@ class _RestaurantSettingsScreenState
               value: restaurant.acceptsOrders,
               onChanged: (value) =>
                   _updateRestaurantField('accepts_orders', value),
-              activeColor: AppTheme.primaryGreen,
+              activeThumbColor: AppTheme.primaryGreen,
             ),
             _buildInfoTile(
               'Temps de préparation'.tr(),
@@ -476,7 +476,7 @@ class _RestaurantSettingsScreenState
                     value: restaurant.isActive,
                     onChanged: (value) =>
                         _updateRestaurantField('is_active', value),
-                    activeColor: AppTheme.primaryGreen,
+                    activeThumbColor: AppTheme.primaryGreen,
                   ),
                   ListTile(
                     title: Text('Statut de vérification'.tr()),

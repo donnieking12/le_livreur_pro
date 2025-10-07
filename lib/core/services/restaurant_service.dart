@@ -18,6 +18,11 @@ class RestaurantService {
   /// Get all active restaurants
   static Future<List<Restaurant>> getAllRestaurants() async {
     try {
+      // For development - return demo data
+      return _getDemoRestaurants();
+      
+      // TODO: Enable this for production
+      /*
       final response = await SupabaseService.client
           .from(_restaurantsTable)
           .select()
@@ -26,6 +31,7 @@ class RestaurantService {
           .order('name');
 
       return response.map((json) => Restaurant.fromJson(json)).toList();
+      */
     } catch (e) {
       throw Exception('Failed to get restaurants: $e');
     }
@@ -101,7 +107,6 @@ class RestaurantService {
       // Filter by distance (simple calculation)
       return restaurants.where((restaurant) {
         // Add null check
-        if (restaurant == null) return false;
         final distance = _calculateDistance(
           latitude,
           longitude,
@@ -112,7 +117,7 @@ class RestaurantService {
       }).toList()
         ..sort((a, b) {
           // Add null checks
-          if (a == null || b == null) return 0;
+          if (b == null) return 0;
           final distanceA =
               _calculateDistance(latitude, longitude, a.latitude, a.longitude);
           final distanceB =
@@ -192,6 +197,11 @@ class RestaurantService {
   /// Get menu items for restaurant
   static Future<List<MenuItem>> getMenuItems(String restaurantId) async {
     try {
+      // For development - return demo data
+      return _getDemoMenuItems(restaurantId);
+      
+      // TODO: Enable this for production
+      /*
       final response = await SupabaseService.client
           .from(_menuItemsTable)
           .select()
@@ -201,6 +211,7 @@ class RestaurantService {
           .order('name');
 
       return response.map((json) => MenuItem.fromJson(json)).toList();
+      */
     } catch (e) {
       throw Exception('Failed to get menu items: $e');
     }
@@ -365,6 +376,288 @@ class RestaurantService {
 
   static double _degreesToRadians(double degrees) {
     return degrees * (math.pi / 180);
+  }
+
+  /// Demo data for development - Côte d'Ivoire restaurants
+  static List<Restaurant> _getDemoRestaurants() {
+    final now = DateTime.now();
+    return [
+      Restaurant(
+        id: 'demo_1',
+        name: 'Chez Mama Adjoua',
+        ownerId: 'demo_owner_1',
+        description: 'Cuisine ivoirienne authentique - Attiéké, kedjenou, alloco',
+        businessAddress: 'Cocody, Angré 7ème Tranche, Abidjan',
+        latitude: 5.3599517,
+        longitude: -3.9715851,
+        businessPhone: '+225 07 12 34 56 78',
+        isActive: true,
+        isVerified: true,
+        acceptsOrders: true,
+        preparationTimeMinutes: 25,
+        minimumOrderXof: 3000,
+        deliveryFeeXof: 500,
+        cuisineTypes: ['ivorian', 'traditional'],
+        categories: ['restaurant'],
+        rating: 4.7,
+        totalOrders: 450,
+        totalReviews: 89,
+        createdAt: now.subtract(const Duration(days: 180)),
+        updatedAt: now.subtract(const Duration(hours: 2)),
+      ),
+      Restaurant(
+        id: 'demo_2',
+        name: 'Pizza Palace',
+        ownerId: 'demo_owner_2',
+        description: 'Pizzas, burgers et plats italiens. Livraison rapide!',
+        businessAddress: 'Plateau, Rue des Jardins, Abidjan',
+        latitude: 5.3196879,
+        longitude: -4.0248565,
+        businessPhone: '+225 07 98 76 54 32',
+        isActive: true,
+        isVerified: true,
+        acceptsOrders: true,
+        preparationTimeMinutes: 20,
+        minimumOrderXof: 4000,
+        deliveryFeeXof: 0, // Free delivery
+        cuisineTypes: ['italian', 'fast_food'],
+        categories: ['restaurant'],
+        rating: 4.3,
+        totalOrders: 680,
+        totalReviews: 124,
+        createdAt: now.subtract(const Duration(days: 120)),
+        updatedAt: now.subtract(const Duration(hours: 1)),
+      ),
+      Restaurant(
+        id: 'demo_3',
+        name: 'Pharmacie du Plateau',
+        ownerId: 'demo_owner_3',
+        description: 'Médicaments, produits de santé et cosmétiques',
+        businessAddress: 'Plateau, Avenue Chardy, Abidjan',
+        latitude: 5.3247036,
+        longitude: -4.0285659,
+        businessPhone: '+225 07 55 44 33 22',
+        isActive: true,
+        isVerified: true,
+        acceptsOrders: true,
+        preparationTimeMinutes: 10,
+        minimumOrderXof: 2000,
+        deliveryFeeXof: 1000,
+        cuisineTypes: [],
+        categories: ['pharmacy'],
+        rating: 4.8,
+        totalOrders: 290,
+        totalReviews: 67,
+        createdAt: now.subtract(const Duration(days: 240)),
+        updatedAt: now.subtract(const Duration(hours: 4)),
+      ),
+      Restaurant(
+        id: 'demo_4',
+        name: 'Boulangerie des Palmes',
+        ownerId: 'demo_owner_4',
+        description: 'Pain frais, viennoiseries et pâtisseries artisanales',
+        businessAddress: 'Deux-Plateaux, Cité des Arts, Abidjan',
+        latitude: 5.3471744,
+        longitude: -3.9816362,
+        businessPhone: '+225 07 11 22 33 44',
+        isActive: true,
+        isVerified: true,
+        acceptsOrders: true,
+        preparationTimeMinutes: 15,
+        minimumOrderXof: 1500,
+        deliveryFeeXof: 500,
+        cuisineTypes: ['french', 'bakery'],
+        categories: ['bakery'],
+        rating: 4.5,
+        totalOrders: 520,
+        totalReviews: 95,
+        createdAt: now.subtract(const Duration(days: 200)),
+        updatedAt: now.subtract(const Duration(hours: 3)),
+      ),
+      Restaurant(
+        id: 'demo_5',
+        name: 'Épicerie Moderne',
+        ownerId: 'demo_owner_5',
+        description: 'Produits alimentaires, épices et articles ménagers',
+        businessAddress: 'Treichville, Rue 12, Abidjan',
+        latitude: 5.2918802,
+        longitude: -4.0197926,
+        businessPhone: '+225 07 66 77 88 99',
+        isActive: true,
+        isVerified: true,
+        acceptsOrders: true,
+        preparationTimeMinutes: 20,
+        minimumOrderXof: 3500,
+        deliveryFeeXof: 750,
+        cuisineTypes: [],
+        categories: ['grocery'],
+        rating: 4.2,
+        totalOrders: 380,
+        totalReviews: 78,
+        createdAt: now.subtract(const Duration(days: 150)),
+        updatedAt: now.subtract(const Duration(hours: 6)),
+      ),
+      Restaurant(
+        id: 'demo_6',
+        name: 'Le Jardin Gourmand',
+        ownerId: 'demo_owner_6',
+        description: 'Restaurant gastronomique - Cuisine française et internationale',
+        businessAddress: 'Cocody, Riviera Golf, Abidjan',
+        latitude: 5.3767102,
+        longitude: -3.9912474,
+        businessPhone: '+225 07 44 55 66 77',
+        isActive: true,
+        isVerified: true,
+        acceptsOrders: false, // Closed for now
+        preparationTimeMinutes: 35,
+        minimumOrderXof: 8000,
+        deliveryFeeXof: 1500,
+        cuisineTypes: ['french', 'international'],
+        categories: ['restaurant'],
+        rating: 4.9,
+        totalOrders: 180,
+        totalReviews: 42,
+        createdAt: now.subtract(const Duration(days: 90)),
+        updatedAt: now.subtract(const Duration(hours: 8)),
+      ),
+    ];
+  }
+
+  /// Demo menu items for development
+  static List<MenuItem> _getDemoMenuItems(String restaurantId) {
+    final now = DateTime.now();
+    
+    switch (restaurantId) {
+      case 'demo_1': // Chez Mama Adjoua
+        return [
+          MenuItem(
+            id: 'menu_1_1',
+            restaurantId: restaurantId,
+            name: 'Attiéké Poisson',
+            description: 'Attiéké traditionnel avec poisson braisé et légumes',
+            priceXof: 2500,
+            categoryId: 'cat_1',
+            categoryName: 'Plats Principaux',
+            isPopular: true,
+            isAvailable: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          MenuItem(
+            id: 'menu_1_2',
+            restaurantId: restaurantId,
+            name: 'Kedjenou de Poulet',
+            description: 'Poulet mijoté aux épices dans une canari',
+            priceXof: 3000,
+            categoryId: 'cat_1',
+            categoryName: 'Plats Principaux',
+            isSpicy: true,
+            isAvailable: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          MenuItem(
+            id: 'menu_1_3',
+            restaurantId: restaurantId,
+            name: 'Alloco',
+            description: 'Bananes plantains frites avec sauce tomate pimentée',
+            priceXof: 1500,
+            categoryId: 'cat_2',
+            categoryName: 'Entrées',
+            isVegetarian: true,
+            isAvailable: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ];
+        
+      case 'demo_2': // Pizza Palace
+        return [
+          MenuItem(
+            id: 'menu_2_1',
+            restaurantId: restaurantId,
+            name: 'Pizza Margherita',
+            description: 'Sauce tomate, mozzarella, basilic frais',
+            priceXof: 4500,
+            categoryId: 'cat_1',
+            categoryName: 'Pizzas',
+            isVegetarian: true,
+            isPopular: true,
+            isAvailable: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          MenuItem(
+            id: 'menu_2_2',
+            restaurantId: restaurantId,
+            name: 'Burger Classic',
+            description: 'Steak de bœuf, salade, tomate, cornichons, sauce burger',
+            priceXof: 3500,
+            categoryId: 'cat_2',
+            categoryName: 'Burgers',
+            isAvailable: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          MenuItem(
+            id: 'menu_2_3',
+            restaurantId: restaurantId,
+            name: 'Pizza 4 Fromages',
+            description: 'Mozzarella, gorgonzola, parmesan, chèvre',
+            priceXof: 5500,
+            categoryId: 'cat_1',
+            categoryName: 'Pizzas',
+            isVegetarian: true,
+            isAvailable: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ];
+        
+      case 'demo_4': // Boulangerie des Palmes
+        return [
+          MenuItem(
+            id: 'menu_4_1',
+            restaurantId: restaurantId,
+            name: 'Pain de Campagne',
+            description: 'Pain artisanal à la farine de blé complet',
+            priceXof: 800,
+            categoryId: 'cat_1',
+            categoryName: 'Pains',
+            isAvailable: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          MenuItem(
+            id: 'menu_4_2',
+            restaurantId: restaurantId,
+            name: 'Croissant',
+            description: 'Croissant au beurre traditionnel',
+            priceXof: 300,
+            categoryId: 'cat_2',
+            categoryName: 'Viennoiseries',
+            isPopular: true,
+            isAvailable: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          MenuItem(
+            id: 'menu_4_3',
+            restaurantId: restaurantId,
+            name: 'Gâteau au Chocolat',
+            description: 'Gâteau moelleux au chocolat noir',
+            priceXof: 2000,
+            categoryId: 'cat_3',
+            categoryName: 'Pâtisseries',
+            isAvailable: true,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ];
+        
+      default:
+        return [];
+    }
   }
 }
 

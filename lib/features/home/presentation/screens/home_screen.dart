@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:le_livreur_pro/core/models/user.dart';
+import 'package:le_livreur_pro/core/services/auth_service.dart';
 import 'package:le_livreur_pro/shared/theme/app_theme.dart';
 import 'package:le_livreur_pro/features/auth/presentation/screens/login_screen.dart';
 import 'package:le_livreur_pro/features/orders/presentation/screens/create_order_screen.dart';
@@ -22,18 +23,71 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
 
-  // Mock user for demonstration - in real app this would come from auth provider
-  final User _currentUser = const User(
-    id: '1',
-    phone: '+2250700000000',
-    fullName: 'John Doe',
-    userType: UserType.customer,
-    createdAt: null,
-    updatedAt: null,
-  );
-
   @override
   Widget build(BuildContext context) {
+    // Watch the current user from authentication provider
+    final userAsync = ref.watch(currentUserProfileProvider);
+    
+    return userAsync.when(
+      data: (user) {
+        // If no user is logged in, redirect to login
+        if (user == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+            );
+          });
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        
+        // User is logged in, show the home interface
+        return _buildHomeInterface(user);
+      },
+      loading: () => const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (error, stack) => Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 64,
+                color: AppTheme.errorRed,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Erreur de connexion'.tr(),
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                error.toString(),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  ref.refresh(currentUserProfileProvider);
+                },
+                child: Text('Réessayer'.tr()),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHomeInterface(User currentUser) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Le Livreur Pro'.tr()),
@@ -48,16 +102,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
-      body: _buildBody(),
+      body: _buildBody(currentUser),
       bottomNavigationBar: _buildBottomNavigationBar(),
       floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(User currentUser) {
     switch (_currentIndex) {
       case 0:
-        return _buildDashboard();
+        return _buildDashboard(currentUser);
       case 1:
         return _buildOrders();
       case 2:
@@ -65,20 +119,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 3:
         return _buildProfile();
       default:
-        return _buildDashboard();
+        return _buildDashboard(currentUser);
     }
   }
 
-  Widget _buildDashboard() {
-    switch (_currentUser.userType) {
+  Widget _buildDashboard(User currentUser) {
+    switch (currentUser.userType) {
       case UserType.customer:
         return _buildCustomerMarketplace();
       case UserType.courier:
-        return _buildCourierDashboard();
+        return _buildCourierDashboard(currentUser);
       case UserType.partner:
-        return _buildPartnerDashboard();
+        return _buildPartnerDashboard(currentUser);
       case UserType.admin:
-        return _buildAdminDashboard();
+        return _buildAdminDashboard(currentUser);
     }
   }
 
@@ -136,7 +190,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildCourierDashboard() {
+  Widget _buildCourierDashboard(User currentUser) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -154,7 +208,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildPartnerDashboard() {
+  Widget _buildPartnerDashboard(User currentUser) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -172,7 +226,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildAdminDashboard() {
+  Widget _buildAdminDashboard(User currentUser) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -191,6 +245,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildWelcomeCard() {
+    final userAsync = ref.watch(currentUserProfileProvider);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -214,7 +269,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Bonjour, ${_currentUser.fullName}'.tr(),
+                        'Bonjour, ${userAsync.value?.fullName ?? "Utilisateur"}'.tr(),
                         style:
                             Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
@@ -545,15 +600,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildFloatingActionButton() {
-    if (_currentUser.userType == UserType.customer) {
-      return FloatingActionButton.extended(
-        onPressed: _createNewOrder,
-        backgroundColor: AppTheme.primaryGreen,
-        icon: const Icon(Icons.add),
-        label: Text('Nouvelle Commande'.tr()),
-      );
-    }
-    return const SizedBox.shrink();
+    final userAsync = ref.watch(currentUserProfileProvider);
+    return userAsync.when(
+      data: (user) {
+        if (user?.userType == UserType.customer) {
+          return FloatingActionButton.extended(
+            onPressed: _createNewOrder,
+            backgroundColor: AppTheme.primaryGreen,
+            icon: const Icon(Icons.add),
+            label: Text('Nouvelle Commande'.tr()),
+          );
+        }
+        return const SizedBox.shrink();
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
   }
 
   // Navigation methods
@@ -574,10 +636,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     setState(() => _currentIndex = 3);
   }
 
-  void _logout() {
-    // TODO: Implement logout logic
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
+  void _logout() async {
+    try {
+      // Use real authentication service to sign out
+      await ref.read(authNotifierProvider.notifier).signOut();
+      
+      // Navigate to login screen
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      }
+    } catch (e) {
+      // Show error message if logout fails
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la déconnexion: $e'.tr()),
+            backgroundColor: AppTheme.errorRed,
+          ),
+        );
+      }
+    }
   }
 }

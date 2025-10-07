@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
-import 'package:le_livreur_pro/core/models/delivery_order.dart';
-import 'package:le_livreur_pro/core/services/auth_service.dart';
-import 'package:le_livreur_pro/core/services/order_service.dart';
 import 'package:le_livreur_pro/core/services/pricing_service.dart';
 import 'package:le_livreur_pro/shared/theme/app_theme.dart';
 import 'package:le_livreur_pro/features/orders/presentation/screens/payment_screen.dart';
@@ -659,6 +656,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           'priorityPrice': pricing['priorityPrice'],
           'fragilePrice': pricing['fragilePrice'],
           'totalPrice': pricing['totalPrice'],
+          'totalPriceXof': pricing['totalPrice'], // Fix: Add the expected key
           'baseZoneRadiusKm': pricing['baseZoneRadius'],
         };
         _isCalculatingPrice = false;
@@ -710,7 +708,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
             'specialInstructions': _specialInstructionsController.text.isEmpty
                 ? null
                 : _specialInstructionsController.text,
-            'totalPriceXof': _pricingResult!['totalPriceXof'],
+            'totalPriceXof': _pricingResult!['totalPrice'],
           },
         ),
       ),

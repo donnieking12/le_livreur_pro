@@ -41,7 +41,7 @@ class PricingService {
         cityBaseZones['default']!;
 
     // Calculate price components
-    final int basePriceComponent = basePriceXof;
+    const int basePriceComponent = basePriceXof;
 
     // Only charge for distance beyond the base zone
     final double additionalDistance =
@@ -93,7 +93,7 @@ class PricingService {
     final double additionalDistance =
         distanceKm > effectiveBaseZone ? distanceKm - effectiveBaseZone : 0.0;
 
-    final int basePriceComponent = basePriceXof;
+    const int basePriceComponent = basePriceXof;
     final int distancePriceComponent =
         (additionalDistance * pricePerKmBeyondZone).round();
     final int priorityPriceComponent =
@@ -183,8 +183,8 @@ class PricingService {
     bool isTrafficHour = false,
   }) {
     // Base time: 30 minutes + 5 minutes per km
-    final int baseMinutes = 30;
-    final int timePerKm = 5;
+    const int baseMinutes = 30;
+    const int timePerKm = 5;
 
     // Traffic adjustment
     final double trafficMultiplier = isTrafficHour ? 1.5 : 1.0;
