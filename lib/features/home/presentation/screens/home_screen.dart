@@ -603,10 +603,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final userAsync = ref.watch(currentUserProfileProvider);
     return userAsync.when(
       data: (user) {
-        if (user?.userType == UserType.customer) {
+        // Hide FloatingActionButton when not on the main dashboard
+        if (user?.userType == UserType.customer && _currentIndex == 0) {
           return FloatingActionButton.extended(
             onPressed: _createNewOrder,
-            backgroundColor: AppTheme.primaryGreen,
+            backgroundColor: AppTheme.primaryYellow,
+            foregroundColor: AppTheme.primaryDark,
             icon: const Icon(Icons.add),
             label: Text('Nouvelle Commande'.tr()),
           );

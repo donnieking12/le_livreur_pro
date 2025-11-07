@@ -170,7 +170,7 @@ class PaymentService {
           );
           break;
 
-        case 'mtn_money':
+        case 'mtn_momo':
         case 'mtnMoney':
           result = await _processMTNMoMoPayment(
             amount: amount,
@@ -206,7 +206,6 @@ class PaymentService {
           break;
 
         case 'cash_on_delivery':
-        case 'cashOnDelivery':
           result = await _processCashOnDelivery(
             amount: amount,
             paymentRef: paymentRef,
@@ -227,11 +226,14 @@ class PaymentService {
 
       return result;
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Payment processing error: $e');
+      }
       return PaymentResult(
         isSuccess: false,
         paymentRef: '',
         transactionId: '',
-        errorMessage: e.toString(),
+        errorMessage: 'Payment processing failed: $e',
         amount: amount,
         currency: currency,
       );

@@ -561,7 +561,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                     child: ElevatedButton(
                       onPressed: () => _rateOrder(order),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.accentOrange,
+                        backgroundColor: AppTheme.primaryOrange,
                       ),
                       child: Text('Évaluer'.tr()),
                     ),
@@ -586,7 +586,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
       case DeliveryStatus.inTransit:
         return AppTheme.warningOrange;
       case DeliveryStatus.arrivedDestination:
-        return AppTheme.accentOrange;
+        return AppTheme.primaryOrange;
       case DeliveryStatus.delivered:
         return AppTheme.successGreen;
       case DeliveryStatus.cancelled:

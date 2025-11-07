@@ -373,13 +373,13 @@ class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.accentOrange.withOpacity(0.1),
+                            color: AppTheme.primaryOrange.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             'Populaire'.tr(),
                             style: const TextStyle(
-                              color: AppTheme.accentOrange,
+                              color: AppTheme.primaryOrange,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),

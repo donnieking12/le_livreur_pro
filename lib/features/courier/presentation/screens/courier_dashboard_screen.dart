@@ -214,7 +214,7 @@ class _CourierDashboardScreenState
             child: _buildStatCard(
               title: 'Gains'.tr(),
               value: stats.todayEarningsFormatted,
-              color: AppTheme.accentOrange,
+              color: AppTheme.primaryOrange,
               icon: Icons.monetization_on,
             ),
           ),
@@ -668,7 +668,7 @@ class _CourierDashboardScreenState
           return AppTheme.warningOrange;
         case DeliveryStatus.pickedUp:
         case DeliveryStatus.inTransit:
-          return AppTheme.accentOrange;
+          return AppTheme.primaryOrange;
         case DeliveryStatus.arrivedDestination:
           return AppTheme.warningOrange;
         case DeliveryStatus.delivered:

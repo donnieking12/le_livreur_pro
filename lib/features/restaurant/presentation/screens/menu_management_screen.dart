@@ -284,11 +284,11 @@ class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen>
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: AppTheme.accentOrange.withOpacity(0.1),
+          backgroundColor: AppTheme.primaryOrange.withOpacity(0.1),
           backgroundImage:
               category.iconUrl != null ? NetworkImage(category.iconUrl!) : null,
           child: category.iconUrl == null
-              ? const Icon(Icons.category, color: AppTheme.accentOrange)
+              ? const Icon(Icons.category, color: AppTheme.primaryOrange)
               : null,
         ),
         title: Text(

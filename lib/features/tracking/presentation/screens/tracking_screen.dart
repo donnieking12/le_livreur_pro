@@ -600,7 +600,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
       case DeliveryStatus.inTransit:
         return AppTheme.warningOrange;
       case DeliveryStatus.arrivedDestination:
-        return AppTheme.accentOrange;
+        return AppTheme.primaryOrange;
       case DeliveryStatus.delivered:
         return AppTheme.successGreen;
       case DeliveryStatus.cancelled:

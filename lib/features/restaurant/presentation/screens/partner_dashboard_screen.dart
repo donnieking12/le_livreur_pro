@@ -272,7 +272,7 @@ class _PartnerDashboardScreenState
             value: '45,000',
             subtitle: 'XOF',
             icon: Icons.monetization_on,
-            color: AppTheme.accentOrange,
+            color: AppTheme.primaryOrange,
           ),
         ),
         const SizedBox(width: 12),

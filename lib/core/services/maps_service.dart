@@ -1,34 +1,120 @@
 import 'dart:async';
 import 'dart:math' show sqrt, cos, sin, atan2;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:le_livreur_pro/core/models/maps_models.dart';
+import 'package:le_livreur_pro/core/config/app_config.dart';
 
 class MapsService {
-  // Get current location (mock implementation)
+  static StreamController<Location>? _courierLocationController;
+  static Timer? _locationTimer;
+  
+  // Get current device location (real implementation)
   static Future<Location?> getCurrentLocation() async {
-    // In a real implementation, this would use location services
-    // For now, return a mock location
-    return Location(
-      latitude: 5.3600, // Abidjan coordinates
-      longitude: -4.0083,
-      timestamp: DateTime.now(),
-    );
-  }
-
-  // Get courier location stream (mock implementation)
-  static Stream<Location> getCourierLocationStream() async* {
-    // In a real implementation, this would listen to real-time courier location updates
-    // For now, yield mock locations periodically
-    while (true) {
-      await Future.delayed(const Duration(seconds: 5));
-      yield Location(
-        latitude:
-            5.3600 + (DateTime.now().millisecondsSinceEpoch % 1000) / 10000,
-        longitude:
-            -4.0083 + (DateTime.now().millisecondsSinceEpoch % 1000) / 10000,
+    try {
+      // Check location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          // Return demo location if permission denied
+          return Location(
+            latitude: 5.3600, // Abidjan coordinates
+            longitude: -4.0083,
+            timestamp: DateTime.now(),
+          );
+        }
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        // Return demo location if permission denied forever
+        return Location(
+          latitude: 5.3600, // Abidjan coordinates
+          longitude: -4.0083,
+          timestamp: DateTime.now(),
+        );
+      }
+      
+      // Get current position
+      final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+      
+      return Location(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        timestamp: DateTime.now(),
+      );
+    } catch (e) {
+      // Fallback to demo location if real location fails
+      print('Error getting location: $e');
+      return Location(
+        latitude: 5.3600, // Abidjan coordinates
+        longitude: -4.0083,
         timestamp: DateTime.now(),
       );
     }
+  }
+
+  // Get courier location stream with real-time simulation
+  static Stream<Location> getCourierLocationStream() {
+    _courierLocationController?.close();
+    _courierLocationController = StreamController<Location>.broadcast();
+    
+    // Simulate courier movement for demo
+    _simulateCourierMovement();
+    
+    return _courierLocationController!.stream;
+  }
+  
+  // Simulate realistic courier movement patterns
+  static void _simulateCourierMovement() {
+    _locationTimer?.cancel();
+    
+    // Starting position (somewhere in Abidjan)
+    double currentLat = 5.3600;
+    double currentLng = -4.0083;
+    double targetLat = 5.3800; // Moving towards delivery location
+    double targetLng = -4.0200;
+    
+    const updateInterval = Duration(seconds: 3);
+    const movementSpeed = 0.0001; // Degrees per update (realistic speed)
+    
+    _locationTimer = Timer.periodic(updateInterval, (timer) {
+      // Calculate direction to target
+      final double latDiff = targetLat - currentLat;
+      final double lngDiff = targetLng - currentLng;
+      final double distance = sqrt(latDiff * latDiff + lngDiff * lngDiff);
+      
+      if (distance < movementSpeed * 2) {
+        // Reached target, set new random target within delivery area
+        targetLat = 5.3600 + (DateTime.now().millisecondsSinceEpoch % 400 - 200) / 10000;
+        targetLng = -4.0083 + (DateTime.now().millisecondsSinceEpoch % 400 - 200) / 10000;
+      } else {
+        // Move towards target
+        currentLat += (latDiff / distance) * movementSpeed;
+        currentLng += (lngDiff / distance) * movementSpeed;
+      }
+      
+      // Add some realistic movement variation
+      currentLat += (DateTime.now().millisecondsSinceEpoch % 20 - 10) / 100000;
+      currentLng += (DateTime.now().millisecondsSinceEpoch % 20 - 10) / 100000;
+      
+      final location = Location(
+        latitude: currentLat,
+        longitude: currentLng,
+        timestamp: DateTime.now(),
+      );
+      
+      _courierLocationController?.add(location);
+    });
+  }
+  
+  // Stop courier location tracking
+  static void stopCourierTracking() {
+    _locationTimer?.cancel();
+    _courierLocationController?.close();
   }
 
   // Get delivery zones (mock implementation)

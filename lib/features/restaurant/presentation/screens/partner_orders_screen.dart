@@ -350,7 +350,7 @@ class _PartnerOrdersScreenState extends ConsumerState<PartnerOrdersScreen>
                       ElevatedButton(
                         onPressed: () => _markOrderReady(order),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.accentOrange,
+                          backgroundColor: AppTheme.primaryOrange,
                         ),
                         child: Text('Marquer prêt'.tr()),
                       ),
@@ -416,7 +416,7 @@ class _PartnerOrdersScreenState extends ConsumerState<PartnerOrdersScreen>
         return AppTheme.infoBlue;
       case DeliveryStatus.courierEnRoute:
       case DeliveryStatus.pickedUp:
-        return AppTheme.accentOrange;
+        return AppTheme.primaryOrange;
       case DeliveryStatus.inTransit:
         return AppTheme.primaryGreen;
       case DeliveryStatus.delivered:
