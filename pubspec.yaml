@@ -40,7 +40,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
 
   # Image and Media
-  image_picker: ^1.0.4
+  image_picker: ^1.2.0
   cached_network_image: ^3.3.0
 
   # Permissions
