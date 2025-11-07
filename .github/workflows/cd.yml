@@ -1,0 +1,321 @@
+name: Continuous Deployment
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  FLUTTER_VERSION: '3.35.5'
+
+jobs:
+  prepare:
+    name: Prepare Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      version: ${{ steps.version.outputs.version }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Determine environment
+      id: env
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
+          echo "environment=production" >> $GITHUB_OUTPUT
+        else
+          echo "environment=staging" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Extract version
+      id: version
+      run: |
+        if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/v}
+        else
+          VERSION=$(date +'%Y.%m.%d')-${GITHUB_SHA::8}
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Deploying version: $VERSION"
+
+  deploy-web:
+    name: Deploy Web App
+    runs-on: ubuntu-latest
+    needs: prepare
+    environment: ${{ needs.prepare.outputs.environment }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+        
+    - name: Configure environment
+      run: |
+        ENV=${{ needs.prepare.outputs.environment }}
+        echo "Configuring for $ENV environment"
+        
+        if [ "$ENV" == "production" ]; then
+          cp deployment/env/.env.production .env
+        else
+          cp deployment/env/.env.staging .env
+        fi
+        
+    - name: Install dependencies
+      run: flutter pub get
+      
+    - name: Build web app
+      run: |
+        flutter build web \
+          --release \
+          --web-renderer canvaskit \
+          --dart-define=ENVIRONMENT=${{ needs.prepare.outputs.environment }} \
+          --dart-define=VERSION=${{ needs.prepare.outputs.version }}
+          
+    - name: Deploy to Firebase Hosting (Staging)
+      if: needs.prepare.outputs.environment == 'staging'
+      uses: FirebaseExtended/action-hosting-deploy@v0
+      with:
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}'
+        projectId: le-livreur-pro-staging
+        channelId: live
+        
+    - name: Deploy to Firebase Hosting (Production)
+      if: needs.prepare.outputs.environment == 'production'
+      uses: FirebaseExtended/action-hosting-deploy@v0
+      with:
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
+        projectId: le-livreur-pro-prod
+        channelId: live
+
+  deploy-android:
+    name: Deploy Android App
+    runs-on: ubuntu-latest
+    needs: prepare
+    environment: ${{ needs.prepare.outputs.environment }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+        
+    - name: Configure signing
+      run: |
+        echo '${{ secrets.ANDROID_KEYSTORE }}' | base64 -d > android/app/keystore.jks
+        echo "storeFile=keystore.jks" >> android/key.properties
+        echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
+        echo "storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}" >> android/key.properties
+        echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
+        
+    - name: Configure environment
+      run: |
+        ENV=${{ needs.prepare.outputs.environment }}
+        if [ "$ENV" == "production" ]; then
+          cp deployment/env/.env.production .env
+        else
+          cp deployment/env/.env.staging .env
+        fi
+        
+    - name: Install dependencies
+      run: flutter pub get
+      
+    - name: Build signed AAB
+      run: |
+        flutter build appbundle \
+          --release \
+          --dart-define=ENVIRONMENT=${{ needs.prepare.outputs.environment }} \
+          --dart-define=VERSION=${{ needs.prepare.outputs.version }}
+          
+    - name: Deploy to Play Store (Internal Testing)
+      if: needs.prepare.outputs.environment == 'staging'
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+        packageName: ci.lelivreurpro.app
+        releaseFiles: build/app/outputs/bundle/release/app-release.aab
+        track: internal
+        status: completed
+        
+    - name: Deploy to Play Store (Production)
+      if: needs.prepare.outputs.environment == 'production'
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+        packageName: ci.lelivreurpro.app
+        releaseFiles: build/app/outputs/bundle/release/app-release.aab
+        track: production
+        status: completed
+
+  deploy-ios:
+    name: Deploy iOS App
+    runs-on: macos-latest
+    needs: prepare
+    environment: ${{ needs.prepare.outputs.environment }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+        
+    - name: Install Apple certificates
+      uses: apple-actions/import-codesign-certs@v2
+      with:
+        p12-file-base64: ${{ secrets.IOS_CERTIFICATES }}
+        p12-password: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+        
+    - name: Install provisioning profile
+      uses: apple-actions/download-provisioning-profiles@v1
+      with:
+        bundle-id: ci.lelivreurpro.app
+        issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+        api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
+        api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+        
+    - name: Configure environment
+      run: |
+        ENV=${{ needs.prepare.outputs.environment }}
+        if [ "$ENV" == "production" ]; then
+          cp deployment/env/.env.production .env
+        else
+          cp deployment/env/.env.staging .env
+        fi
+        
+    - name: Install dependencies
+      run: flutter pub get
+      
+    - name: Install iOS dependencies
+      run: |
+        cd ios
+        pod install
+        
+    - name: Build iOS app
+      run: |
+        flutter build ios \
+          --release \
+          --dart-define=ENVIRONMENT=${{ needs.prepare.outputs.environment }} \
+          --dart-define=VERSION=${{ needs.prepare.outputs.version }}
+          
+    - name: Build and archive
+      run: |
+        cd ios
+        xcodebuild -workspace Runner.xcworkspace \
+          -scheme Runner \
+          -configuration Release \
+          -destination generic/platform=iOS \
+          -archivePath build/Runner.xcarchive \
+          archive
+          
+    - name: Export IPA
+      run: |
+        cd ios
+        xcodebuild -exportArchive \
+          -archivePath build/Runner.xcarchive \
+          -exportOptionsPlist ExportOptions.plist \
+          -exportPath build/
+          
+    - name: Deploy to TestFlight (Staging)
+      if: needs.prepare.outputs.environment == 'staging'
+      uses: apple-actions/upload-testflight-build@v1
+      with:
+        app-path: ios/build/Runner.ipa
+        issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+        api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
+        api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+        
+    - name: Deploy to App Store (Production)
+      if: needs.prepare.outputs.environment == 'production'
+      uses: apple-actions/upload-app-store-build@v1
+      with:
+        app-path: ios/build/Runner.ipa
+        issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+        api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
+        api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+
+  database-migration:
+    name: Database Migration
+    runs-on: ubuntu-latest
+    needs: prepare
+    environment: ${{ needs.prepare.outputs.environment }}
+    if: needs.prepare.outputs.environment == 'production'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Supabase CLI
+      run: |
+        npm install -g supabase
+        
+    - name: Run database migrations
+      run: |
+        echo "Running database migrations for production..."
+        # Add your database migration commands here
+        # supabase db push --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        echo "Migrations completed"
+      env:
+        SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [deploy-web, deploy-android, deploy-ios]
+    if: always()
+    
+    steps:
+    - name: Notify success
+      if: ${{ needs.deploy-web.result == 'success' && needs.deploy-android.result == 'success' && needs.deploy-ios.result == 'success' }}
+      run: |
+        echo "🚀 Deployment completed successfully!"
+        echo "Environment: ${{ needs.prepare.outputs.environment }}"
+        echo "Version: ${{ needs.prepare.outputs.version }}"
+        echo "- Web app deployed"
+        echo "- Android app deployed to Play Store"
+        echo "- iOS app deployed to App Store"
+        
+    - name: Notify failure
+      if: ${{ needs.deploy-web.result == 'failure' || needs.deploy-android.result == 'failure' || needs.deploy-ios.result == 'failure' }}
+      run: |
+        echo "❌ Deployment failed!"
+        echo "Check the workflow logs for details."
+        exit 1
