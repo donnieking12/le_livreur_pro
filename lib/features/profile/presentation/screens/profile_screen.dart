@@ -27,22 +27,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emergencyContactController = TextEditingController();
-  
+
   File? _profileImage;
   bool _isEditing = false;
   bool _isLoading = false;
   bool _notificationsEnabled = true;
   bool _locationSharingEnabled = true;
   String _preferredLanguage = 'fr';
-  
+
   final List<Address> _savedAddresses = [];
-  
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
   }
-  
+
   @override
   void dispose() {
     _fullNameController.dispose();
@@ -51,16 +51,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _emergencyContactController.dispose();
     super.dispose();
   }
-  
+
   void _loadUserData() {
     final userAsync = ref.read(currentUserProfileProvider);
     final user = userAsync.value;
-    
+
     if (user != null) {
       _fullNameController.text = user.fullName ?? '';
       _emailController.text = user.email ?? '';
       _phoneController.text = user.phone ?? '';
-      
+
       // Load demo addresses
       _savedAddresses.addAll([
         Address(
@@ -114,7 +114,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildProfileHeader() {
     final userAsync = ref.watch(currentUserProfileProvider);
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -131,15 +131,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       backgroundImage: _profileImage != null
                           ? FileImage(_profileImage!) as ImageProvider
                           : (user?.profileImageUrl != null
-                              ? NetworkImage(user!.profileImageUrl!) as ImageProvider
+                              ? NetworkImage(user!.profileImageUrl!)
+                                  as ImageProvider
                               : null),
-                      child: _profileImage == null && user?.profileImageUrl == null
-                          ? const Icon(
-                              Icons.person,
-                              size: 50,
-                              color: Colors.white,
-                            )
-                          : null,
+                      child:
+                          _profileImage == null && user?.profileImageUrl == null
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: Colors.white,
+                                )
+                              : null,
                     ),
                     Positioned(
                       bottom: 0,
@@ -233,12 +235,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         maxHeight: 512,
         imageQuality: 80,
       );
-      
+
+      if (!mounted) return;
+
       if (image != null) {
         setState(() {
           _profileImage = File(image.path);
         });
-        
+
         // TODO: Upload image to Supabase storage
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -248,6 +252,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de la sélection de l\'image'.tr()),
@@ -304,7 +309,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           icon: Icons.notifications,
           title: 'Notifications'.tr(),
           subtitle: 'Préférences de notification'.tr(),
-          onTap: () => ProfileManagementMethods.showNotificationSettings(context),
+          onTap: () =>
+              ProfileManagementMethods.showNotificationSettings(context),
         ),
         _buildProfileOption(
           icon: Icons.security,
@@ -361,7 +367,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _showEditProfileDialog() {
     final userAsync = ref.read(currentUserProfileProvider);
     final user = userAsync.value;
-    
+
     if (user != null) {
       _fullNameController.text = user.fullName ?? '';
       _emailController.text = user.email ?? '';
@@ -472,7 +478,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       // TODO: Implement profile update in backend
       await Future.delayed(const Duration(seconds: 1)); // Simulate API call
-      
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
