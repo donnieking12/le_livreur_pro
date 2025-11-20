@@ -497,6 +497,8 @@ class _PartnerOrdersScreenState extends ConsumerState<PartnerOrdersScreen>
               'Refusé par le partenaire',
             );
 
+        if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Commande ${order.orderNumber} refusée'.tr()),
@@ -506,6 +508,7 @@ class _PartnerOrdersScreenState extends ConsumerState<PartnerOrdersScreen>
 
         _refreshOrders();
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors du refus: $e'.tr()),

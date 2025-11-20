@@ -481,6 +481,7 @@ class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen>
       await MenuService.updateMenuItem(item.id, {'is_available': isAvailable});
       _refreshData();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de la mise à jour: $e'.tr()),
@@ -563,6 +564,7 @@ class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen>
           category.id, {'is_active': isActive});
       _refreshData();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de la mise à jour: $e'.tr()),
@@ -726,9 +728,11 @@ class _MenuItemDialogState extends State<_MenuItemDialog> {
         await MenuService.updateMenuItem(widget.item!.id, data);
       }
 
+      if (!mounted) return;
       widget.onSaved();
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur: $e'.tr()),
@@ -837,9 +841,11 @@ class _CategoryDialogState extends State<_CategoryDialog> {
         await MenuService.updateMenuCategory(widget.category!.id, data);
       }
 
+      if (!mounted) return;
       widget.onSaved();
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur: $e'.tr()),

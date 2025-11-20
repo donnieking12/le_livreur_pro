@@ -679,6 +679,8 @@ class _RestaurantSettingsScreenState
           widget.restaurantId, {field: value});
       _refreshData();
 
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Mise à jour effectuée avec succès'.tr()),
@@ -686,6 +688,7 @@ class _RestaurantSettingsScreenState
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de la mise à jour: $e'.tr()),
