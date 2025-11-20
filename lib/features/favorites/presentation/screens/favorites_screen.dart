@@ -34,30 +34,36 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       Restaurant(
         id: 'rest-1',
         name: 'Restaurant Chez Mama',
-        cuisine: 'Ivoirienne',
-        address: 'Plateau, Abidjan',
+        ownerId: 'demo-owner-1',
+        description: 'Authentic Ivorian cuisine',
+        businessAddress: 'Plateau, Abidjan',
         latitude: 5.3200,
         longitude: -4.0100,
         rating: 4.8,
-        deliveryTime: '25-35 min',
-        deliveryFee: 1000,
-        imageUrl: 'https://example.com/restaurant1.jpg',
-        isOpen: true,
+        preparationTimeMinutes: 30,
+        deliveryFeeXof: 1000,
+        logoUrl: 'https://example.com/restaurant1.jpg',
+        cuisineTypes: ['Ivoirienne'],
         categories: ['Traditionnel', 'Grillades'],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       ),
       Restaurant(
         id: 'rest-2',
         name: 'Pizza Palace',
-        cuisine: 'Italienne',
-        address: 'Cocody, Abidjan',
+        ownerId: 'demo-owner-2',
+        description: 'Italian pizza and pasta',
+        businessAddress: 'Cocody, Abidjan',
         latitude: 5.3500,
         longitude: -3.9900,
         rating: 4.5,
-        deliveryTime: '20-30 min',
-        deliveryFee: 800,
-        imageUrl: 'https://example.com/restaurant2.jpg',
-        isOpen: true,
+        preparationTimeMinutes: 25,
+        deliveryFeeXof: 800,
+        logoUrl: 'https://example.com/restaurant2.jpg',
+        cuisineTypes: ['Italienne'],
         categories: ['Pizza', 'Pâtes'],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       ),
     ];
 
@@ -155,17 +161,18 @@ class _FavoritesScreenState extends State<FavoritesScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text('${restaurant.cuisine} • ${restaurant.address}'),
+            Text(
+                '${restaurant.cuisineTypes.isNotEmpty ? restaurant.cuisineTypes.first : ""} • ${restaurant.businessAddress}'),
             const SizedBox(height: 4),
             Row(
               children: [
-                Icon(Icons.star, color: Colors.amber, size: 16),
+                const Icon(Icons.star, color: Colors.amber, size: 16),
                 Text(' ${restaurant.rating}'),
                 const SizedBox(width: 16),
-                Icon(Icons.access_time, color: Colors.grey, size: 16),
-                Text(' ${restaurant.deliveryTime}'),
+                const Icon(Icons.access_time, color: Colors.grey, size: 16),
+                Text(' ${restaurant.preparationTimeMinutes} min'),
                 const SizedBox(width: 16),
-                Text('${restaurant.deliveryFee} XOF'),
+                Text('${restaurant.deliveryFeeXof} XOF'),
               ],
             ),
           ],
@@ -237,7 +244,8 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                 children: [
                   const Icon(Icons.delete, color: Colors.red),
                   const SizedBox(width: 8),
-                  Text('remove_from_favorites'.tr(), style: const TextStyle(color: Colors.red)),
+                  Text('remove_from_favorites'.tr(),
+                      style: const TextStyle(color: Colors.red)),
                 ],
               ),
             ),
@@ -261,15 +269,15 @@ class _FavoritesScreenState extends State<FavoritesScreen>
           Text(
             title,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Colors.grey.shade600,
-            ),
+                  color: Colors.grey.shade600,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
             subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade500,
-            ),
+                  color: Colors.grey.shade500,
+                ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -292,7 +300,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     setState(() {
       _favoriteRestaurants.remove(restaurant);
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('restaurant_removed_from_favorites'.tr()),
@@ -313,7 +321,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     setState(() {
       _favoriteAddresses.removeAt(index);
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('address_removed_from_favorites'.tr()),
@@ -357,7 +365,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
 
   Widget _buildEditAddressDialog(String currentAddress, int index) {
     final controller = TextEditingController(text: currentAddress);
-    
+
     return AlertDialog(
       title: Text('edit_address'.tr()),
       content: TextField(

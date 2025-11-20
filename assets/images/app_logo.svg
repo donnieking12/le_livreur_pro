@@ -1,0 +1,30 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="512" cy="512" r="512" fill="#FF6B35"/>
+  
+  <!-- Delivery Truck Icon -->
+  <g transform="translate(256, 256)">
+    <!-- Truck Body -->
+    <rect x="50" y="200" width="300" height="180" rx="20" fill="white"/>
+    <rect x="350" y="250" width="150" height="130" rx="15" fill="white"/>
+    
+    <!-- Truck Cabin -->
+    <path d="M 350 250 L 450 250 L 480 280 L 480 380 L 350 380 Z" fill="#E8E8E8"/>
+    
+    <!-- Wheels -->
+    <circle cx="150" cy="400" r="50" fill="#2C3E50"/>
+    <circle cx="150" cy="400" r="30" fill="#34495E"/>
+    <circle cx="420" cy="400" r="50" fill="#2C3E50"/>
+    <circle cx="420" cy="400" r="30" fill="#34495E"/>
+    
+    <!-- Speed Lines -->
+    <line x1="20" y1="220" x2="80" y2="220" stroke="white" stroke-width="8" stroke-linecap="round"/>
+    <line x1="10" y1="260" x2="70" y2="260" stroke="white" stroke-width="8" stroke-linecap="round"/>
+    <line x1="0" y1="300" x2="60" y2="300" stroke="white" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="512" y="680" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="white" text-anchor="middle">
+    Le Livreur Pro
+  </text>
+</svg>

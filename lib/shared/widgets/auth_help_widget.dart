@@ -5,10 +5,11 @@ import 'package:le_livreur_pro/shared/theme/app_theme.dart';
 import 'package:le_livreur_pro/core/services/auth_service.dart';
 import 'package:le_livreur_pro/core/services/demo_auth_service.dart';
 import 'package:le_livreur_pro/core/models/user.dart';
+import 'package:le_livreur_pro/core/utils/app_logger.dart';
 
 class AuthHelpWidget extends ConsumerWidget {
   final bool isSignUp;
-  
+
   const AuthHelpWidget({
     super.key,
     this.isSignUp = false,
@@ -36,7 +37,9 @@ class AuthHelpWidget extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                isSignUp ? 'Guide d\'inscription'.tr() : 'Guide de connexion'.tr(),
+                isSignUp
+                    ? 'Guide d\'inscription'.tr()
+                    : 'Guide de connexion'.tr(),
                 style: TextStyle(
                   color: Colors.blue[700],
                   fontWeight: FontWeight.bold,
@@ -79,7 +82,7 @@ class AuthHelpWidget extends ConsumerWidget {
             ),
             _buildDemoAccount(
               'coursier@demo.com',
-              'demo123', 
+              'demo123',
               'Coursier',
               Colors.orange,
               context,
@@ -98,7 +101,7 @@ class AuthHelpWidget extends ConsumerWidget {
       ),
     );
   }
-  
+
   Widget _buildHelpItem(String text, IconData icon, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -123,7 +126,7 @@ class AuthHelpWidget extends ConsumerWidget {
       ),
     );
   }
-  
+
   Widget _buildDemoAccount(
     String email,
     String password,
@@ -136,9 +139,9 @@ class AuthHelpWidget extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(vertical: 2),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -160,14 +163,14 @@ class AuthHelpWidget extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: color.withOpacity(0.8),
+                    color: color.withValues(alpha: 0.8),
                   ),
                 ),
                 Text(
                   'Mot de passe: $password',
                   style: TextStyle(
                     fontSize: 11,
-                    color: color.withOpacity(0.6),
+                    color: color.withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -181,11 +184,12 @@ class AuthHelpWidget extends ConsumerWidget {
             ),
             onPressed: () async {
               try {
-                print('🔴 Quick demo login: $email');
+                AppLogger.userAction('Quick demo login',
+                    metadata: {'email': email});
                 await ref.read(authNotifierProvider.notifier).signInWithEmail(
-                  email: email,
-                  password: password,
-                );
+                      email: email,
+                      password: password,
+                    );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

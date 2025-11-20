@@ -14,15 +14,15 @@ class PerformanceOptimizer {
 
     // Start periodic memory cleanup
     _startMemoryCleanup();
-    
+
     // Optimize system UI
     _optimizeSystemUI();
-    
+
     // Enable performance monitoring in debug mode
     if (kDebugMode) {
       _enablePerformanceMonitoring();
     }
-    
+
     debugPrint('🚀 Performance optimizations initialized');
   }
 
@@ -36,7 +36,7 @@ class PerformanceOptimizer {
   /// Start periodic memory cleanup
   static void _startMemoryCleanup() {
     _memoryCleanupTimer?.cancel();
-    
+
     // Clean up memory every 5 minutes
     _memoryCleanupTimer = Timer.periodic(
       const Duration(minutes: 5),
@@ -51,13 +51,13 @@ class PerformanceOptimizer {
       if (kDebugMode) {
         debugPrint('🧹 Performing memory cleanup...');
       }
-      
+
       // Clear image cache if it's getting too large
       PaintingBinding.instance.imageCache.clear();
-      
+
       // Clear any temporary data
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      
+
       if (kDebugMode) {
         debugPrint('✅ Memory cleanup completed');
       }
@@ -106,15 +106,13 @@ class PerformanceOptimizer {
     if (!kDebugMode) return;
 
     try {
-      final binding = WidgetsBinding.instance;
-      
       // Log frame rendering info
       debugPrint('📊 Performance Metrics:');
-      debugPrint('   • Image cache size: ${PaintingBinding.instance.imageCache.currentSize}');
-      debugPrint('   • Image cache live count: ${PaintingBinding.instance.imageCache.liveImageCount}');
-      debugPrint('   • Image cache pending count: ${PaintingBinding.instance.imageCache.pendingImageCount}');
-      
-    } catch (e) {
+      debugPrint(
+          '   • Image cache size: ${PaintingBinding.instance.imageCache.currentSize}');
+      debugPrint(
+          '   • Image cache max size: ${PaintingBinding.instance.imageCache.maximumSize}');
+    } on Exception catch (e) {
       debugPrint('❌ Performance monitoring error: $e');
     }
   }
@@ -123,13 +121,13 @@ class PerformanceOptimizer {
   static Future<void> preloadCriticalResources() async {
     try {
       debugPrint('⏳ Preloading critical resources...');
-      
+
       // Preload commonly used assets
       await _preloadAssets();
-      
+
       // Warm up commonly used services
       await _warmUpServices();
-      
+
       debugPrint('✅ Critical resources preloaded');
     } catch (e) {
       debugPrint('❌ Resource preloading error: $e');
@@ -173,7 +171,7 @@ class PerformanceOptimizer {
   static Widget optimizeNetworkImage({
     required String imageUrl,
     required Widget Function(BuildContext, Widget, int?, bool) builder,
-    Widget Function(BuildContext, String)? errorBuilder,
+    Widget Function(BuildContext, Object, StackTrace?)? errorBuilder,
     double? width,
     double? height,
     BoxFit? fit,
@@ -257,7 +255,7 @@ class _ThrottlerManager {
   void throttle(String key, VoidCallback callback, Duration interval) {
     final now = DateTime.now();
     final lastTime = _lastExecution[key];
-    
+
     if (lastTime == null || now.difference(lastTime) >= interval) {
       _lastExecution[key] = now;
       callback();

@@ -8,26 +8,31 @@ import 'dart:io';
 class TestHelper {
   static Future<void> setupTestEnvironment() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-    
+
     // Load test environment variables
     if (File('.env.test').existsSync()) {
       await dotenv.load(fileName: '.env.test');
     }
-    
+
     // Initialize EasyLocalization for tests
     await EasyLocalization.ensureInitialized();
   }
-  
+
   /// Wrapper widget for testing widgets that require localization
   static Widget createTestableWidget(Widget child) {
     return EasyLocalization(
       supportedLocales: const [Locale('fr', 'CI'), Locale('en', 'US')],
       path: 'assets/translations',
       fallbackLocale: const Locale('fr', 'CI'),
-      child: MaterialApp(
-        localizationsDelegates: EasyLocalization.of(context)?.localizationDelegates,
-        supportedLocales: EasyLocalization.of(context)?.supportedLocales ?? [],
-        home: child,
+      child: Builder(
+        builder: (context) {
+          return MaterialApp(
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
+            home: child,
+          );
+        },
       ),
     );
   }

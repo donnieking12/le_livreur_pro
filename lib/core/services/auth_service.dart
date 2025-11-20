@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:le_livreur_pro/core/models/user.dart';
 import 'package:le_livreur_pro/core/services/supabase_service.dart';
 import 'package:le_livreur_pro/core/services/demo_auth_service.dart';
+import 'package:le_livreur_pro/core/utils/app_logger.dart';
 
 // Provider for current user profile
 final currentUserProfileProvider = Provider<AsyncValue<User?>>((ref) {
@@ -16,7 +17,7 @@ final authNotifierProvider =
   return AuthNotifier();
 });
 
-// Alias for backward compatibility  
+// Alias for backward compatibility
 final currentUserProvider = authNotifierProvider;
 
 class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
@@ -38,23 +39,24 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     required String password,
   }) async {
     try {
-      // Check if this is a demo account first  
+      // Check if this is a demo account first
       if (DemoAuthService.isDemoEmail(email)) {
-        print('🧪 AuthNotifier: Using demo authentication');
+        AppLogger.info('Using demo authentication', tag: 'AuthNotifier');
         final demoUser = await DemoAuthService.signInDemo(
           email: email,
           password: password,
         );
-        
+
         if (demoUser != null) {
-          print('✅ AuthNotifier: Demo login successful, updating state');
+          AppLogger.info('Demo login successful, updating state',
+              tag: 'AuthNotifier');
           state = AsyncValue.data(demoUser);
           return;
         } else {
           throw Exception('Demo credentials invalides (utilisez: demo123)');
         }
       }
-      
+
       // Normal Supabase authentication
       await AuthService.signInWithEmail(
         email: email,
@@ -77,9 +79,10 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     try {
       // For demo emails, don't try to sign up - redirect to sign in
       if (DemoAuthService.isDemoEmail(email)) {
-        throw Exception('Compte de démo existant. Utilisez "Se connecter" avec: $email / demo123');
+        throw Exception(
+            'Compte de démo existant. Utilisez "Se connecter" avec: $email / demo123');
       }
-      
+
       await AuthService.signUpWithEmail(
         email: email,
         password: password,
@@ -138,21 +141,24 @@ class AuthService {
     required String password,
   }) async {
     try {
-      print('🔐 Attempting signin with email: $email');
-      
+      AppLogger.info('Attempting signin with email: $email',
+          tag: 'AuthService');
+
       // Normal Supabase authentication (demo logic handled in AuthNotifier)
       final response = await _client.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      
-      print('✅ Signin response: User ID = ${response.user?.id}, Session = ${response.session != null}');
-      
+
+      AppLogger.info(
+          'Signin response: User ID = ${response.user?.id}, Session = ${response.session != null}',
+          tag: 'AuthService');
+
       if (response.user == null) {
         throw Exception('Login failed: No user returned');
       }
     } catch (e) {
-      print('❌ Signin error: $e');
+      AppLogger.error('Signin error', tag: 'AuthService', error: e);
       throw _handleAuthError(e);
     }
   }
@@ -174,26 +180,31 @@ class AuthService {
         ...?additionalData,
       };
 
-      print('🔑 Attempting signup with email: $email');
-      
+      AppLogger.info('Attempting signup with email: $email',
+          tag: 'AuthService');
+
       final response = await _client.auth.signUp(
         email: email,
         password: password,
         data: userData,
       );
 
-      print('📧 Signup response: User ID = ${response.user?.id}, Session = ${response.session != null}');
-      
+      AppLogger.info(
+          'Signup response: User ID = ${response.user?.id}, Session = ${response.session != null}',
+          tag: 'AuthService');
+
       if (response.user != null) {
         // Create user profile regardless of email confirmation status
         await _createUserProfile(response.user!);
-        print('✅ User profile created successfully');
+        AppLogger.info('User profile created successfully', tag: 'AuthService');
       } else {
-        print('⚠️ Signup successful but user is null (email confirmation may be required)');
+        AppLogger.warning(
+            'Signup successful but user is null (email confirmation may be required)',
+            tag: 'AuthService');
         // Still throw success since this is expected behavior with email confirmation
       }
     } catch (e) {
-      print('❌ Signup error: $e');
+      AppLogger.error('Signup error', tag: 'AuthService', error: e);
       throw _handleAuthError(e);
     }
   }
@@ -265,11 +276,13 @@ class AuthService {
         return profile;
       }
     } catch (e) {
-      print('⚠️ Could not fetch user profile from database: $e');
+      AppLogger.warning('Could not fetch user profile from database',
+          tag: 'AuthService', error: e);
     }
-    
+
     // Fallback: Create user profile from auth metadata for development
-    print('👥 Creating fallback user profile from auth data');
+    AppLogger.info('Creating fallback user profile from auth data',
+        tag: 'AuthService');
     final userData = authUser.userMetadata ?? {};
     return User(
       id: authUser.id,
@@ -296,7 +309,7 @@ class AuthService {
     try {
       // Sign out demo user if applicable
       DemoAuthService.signOutDemo();
-      
+
       // Sign out from Supabase
       await _client.auth.signOut();
     } catch (e) {
@@ -320,7 +333,8 @@ class AuthService {
   static Future<void> _createUserProfile(supabase.User authUser) async {
     try {
       final userData = authUser.userMetadata ?? {};
-      print('📄 Creating user profile with metadata: $userData');
+      AppLogger.debug('Creating user profile with metadata: $userData',
+          tag: 'AuthService');
 
       await SupabaseService.createUserProfile(
         userId: authUser.id,
@@ -330,9 +344,10 @@ class AuthService {
           userData['user_type'] ?? 'customer',
         ),
       );
-      print('✅ User profile created in database');
+      AppLogger.info('User profile created in database', tag: 'AuthService');
     } catch (e) {
-      print('❌ Failed to create user profile: $e');
+      AppLogger.error('Failed to create user profile',
+          tag: 'AuthService', error: e);
       // Don't throw here - profile creation failure shouldn't block auth
       // throw Exception('Failed to create user profile: $e');
     }
@@ -439,10 +454,11 @@ class AuthService {
 
   /// Handle authentication errors with localized messages
   static Exception _handleAuthError(dynamic error) {
-    print('🚨 Auth error details: $error');
-    
+    AppLogger.error('Auth error details', tag: 'AuthService', error: error);
+
     if (error is supabase.AuthException) {
-      print('🚨 AuthException message: ${error.message}');
+      AppLogger.error('AuthException message: ${error.message}',
+          tag: 'AuthService');
       switch (error.message.toLowerCase()) {
         case 'invalid phone number':
           return Exception('Numéro de téléphone invalide');
@@ -450,7 +466,8 @@ class AuthService {
           return Exception('Utilisateur non trouvé');
         case 'invalid login credentials':
         case 'email not confirmed':
-          return Exception('Email ou mot de passe incorrect, ou email non confirmé');
+          return Exception(
+              'Email ou mot de passe incorrect, ou email non confirmé');
         case 'invalid otp':
         case 'token expired':
           return Exception('Code de vérification invalide ou expiré');
@@ -459,9 +476,11 @@ class AuthService {
         case 'signup disabled':
           return Exception('Les inscriptions sont temporairement désactivées');
         case 'email address not confirmed':
-          return Exception('Veuillez confirmer votre email avant de vous connecter');
+          return Exception(
+              'Veuillez confirmer votre email avant de vous connecter');
         case 'signups not allowed for otp':
-          return Exception('Inscriptions par OTP désactivées. Utilisez l\'email.');
+          return Exception(
+              'Inscriptions par OTP désactivées. Utilisez l\'email.');
         default:
           return Exception('Erreur d\'authentification: ${error.message}');
       }

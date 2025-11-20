@@ -9,6 +9,7 @@ import 'package:le_livreur_pro/core/models/delivery_order.dart';
 import 'package:le_livreur_pro/core/models/menu_item.dart';
 import 'package:le_livreur_pro/core/models/restaurant.dart';
 import 'package:le_livreur_pro/core/models/user.dart';
+import 'package:le_livreur_pro/core/utils/app_logger.dart';
 
 class SupabaseService {
   static late SupabaseClient _client;
@@ -23,11 +24,13 @@ class SupabaseService {
 
   /// Initialize Supabase client
   static Future<void> initialize() async {
-    print('📦 Initializing Supabase with demo configuration for web...');
+    AppLogger.info('Initializing Supabase with demo configuration for web',
+        tag: 'SupabaseService');
 
     // Use hardcoded values for web demo (since .env doesn't work well on web)
     final supabaseUrl = 'https://fnygxppfogfpwycbbhsv.supabase.co';
-    final supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZueWd4cHBmb2dmcHd5Y2JiaHN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0OTkxNDIsImV4cCI6MjA3MDA3NTE0Mn0.MMu4mvYF7lR7ST6uHwf8A_EeujhwXUQ3-SxLNnFTV9o';
+    final supabaseAnonKey =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZueWd4cHBmb2dmcHd5Y2JiaHN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0OTkxNDIsImV4cCI6MjA3MDA3NTE0Mn0.MMu4mvYF7lR7ST6uHwf8A_EeujhwXUQ3-SxLNnFTV9o';
 
     await Supabase.initialize(
       url: supabaseUrl,
@@ -38,7 +41,8 @@ class SupabaseService {
     );
 
     _client = Supabase.instance.client;
-    print('🚀 Supabase initialized: $supabaseUrl');
+    AppLogger.info('Supabase initialized: $supabaseUrl',
+        tag: 'SupabaseService');
     _setupRealtime();
   }
 
