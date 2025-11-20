@@ -735,6 +735,8 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
               order.orderNumber.toLowerCase() == orderNumber.toLowerCase())
           .firstOrNull;
 
+      if (!mounted) return;
+
       if (foundOrder != null) {
         setState(() {
           _trackedOrder = foundOrder;
@@ -757,6 +759,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isSearching = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -929,7 +932,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
                   BitmapDescriptor.hueBlue),
             ),
           );
-                },
+        },
         loading: () {
           // Handle loading state if needed
         },
